@@ -19,6 +19,15 @@ const required = [
   "evidence/round-2/protocol.md",
   "evidence/round-2/case-selection.md",
   "evidence/round-2/final-report.md",
+  "evidence/round-3/README.md",
+  "evidence/round-3/protocol.md",
+  "evidence/round-3/selection.md",
+  "evidence/round-3/final-report.md",
+  "evidence/round-3/audit/control-hashes.md",
+  "evidence/round-3/audit/blinded-review-record.md",
+  "evidence/round-3/acceptance/package-lock.json",
+  "evidence/round-3/artifacts/patch-B.diff",
+  "evidence/licenses/ofetch-MIT.txt",
   "evidence/case-study/verified-repair.md",
   "demo/creator-verifier/package.json",
   "demo/creator-verifier/src/index.html",
@@ -39,11 +48,29 @@ const controlHashes = new Map([
   ["evidence/round-2/cases/1-camelcase/task.md", "1CC2EA9C892C6DEF1F8B32D2E432E43C761AF717C84AC8DAE95EDCB3A9D56D34"],
   ["evidence/round-2/cases/2-cli-truncate/task.md", "270BC2F432A887F764F30E24CCEF16F99F899FB20D53AD3454B2AD12D5B54A77"],
   ["evidence/round-2/cases/3-commander/task.md", "80233C44F7616006D1FC1CCE2CD5C7125D58C4AD91A1BD9D2FD10806C8010B90"],
+  ["evidence/round-3/acceptance/task-statement.md", "487EFDE5DE16BD8858FB6776BE78F9F603466A476A452FB1CFC9DAE0A46997D8"],
+  ["evidence/round-3/acceptance/type-contract.ts", "77E531A645F69EE90A717E24F0C291C2F7DA311E2D9A62A142424868517267B9"],
+  ["evidence/round-3/acceptance/run.mjs", "17D9BC078AEAA6E7DED35FEEFF62D79F4F8C69437A56A9F7A3018DC88A1A54E5"],
+  ["evidence/round-3/acceptance/package.json", "A2BEBC740D684ECE2EA316B90758DD4BC067780C5E3355C4E15B2B2AE42D42F8"],
+  ["evidence/round-3/acceptance/package-lock.json", "5368898BD9341D41CE9DF1678AAB6E593AA3B37D9852AC66747290B569A5649F"],
 ]);
 
 for (const [file, expected] of controlHashes) {
   const actual = createHash("sha256").update(await readFile(path.join(root, file))).digest("hex").toUpperCase();
   assert.equal(actual, expected, `frozen control changed: ${file}`);
+}
+
+const round3ArtifactHashes = new Map([
+  ["evidence/round-3/protocol.md", "D9E988CE4050B38DA1D8056E9D6B0F865609D89B1B725C6019F58252B2A85D22"],
+  ["evidence/round-3/selection.md", "3DD8AA039D5264860930E74C03E442F67A44720EA6AC19F9ACAB9CC8963584FB"],
+  ["evidence/round-3/final-report.md", "3120E0F1F5FBE5576B480C18FCB91CAB909CAD22FFCF9F238626B92F0E385BC7"],
+  ["evidence/round-3/audit/control-hashes.md", "270A04E979EAC50488D6C15A2C8DC4FF550C29066BFC02365613E1BE0C56A537"],
+  ["evidence/round-3/audit/blinded-review-record.md", "891FD9B59613E5A01E09C684A40EEDEB323EC8400421F9D9BC96B369B4FE5843"],
+]);
+
+for (const [file, expected] of round3ArtifactHashes) {
+  const actual = createHash("sha256").update(await readFile(path.join(root, file))).digest("hex").toUpperCase();
+  assert.equal(actual, expected, `Round 3 artifact changed: ${file}`);
 }
 
 const markdownFiles = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "*.md", "evidence/**/*.md", "demo/creator-verifier/**/*.md"], { cwd: root, encoding: "utf8" }).trim().split(/\r?\n/).filter(Boolean);
@@ -70,7 +97,7 @@ const excluded = /(^|\/)(?:node_modules|dist|coverage|\.git|\.openai|\.wrangler|
 for (const file of candidateFiles) assert.doesNotMatch(file, excluded, `excluded path is a release candidate: ${file}`);
 
 // This audit source necessarily contains the patterns it searches for.
-const releaseTextFiles = candidateFiles.filter((file) => file !== "scripts/check-public-release.mjs" && /\.(?:md|mjs|cjs|js|json|html|css|patch|txt)$/i.test(file));
+const releaseTextFiles = candidateFiles.filter((file) => file !== "scripts/check-public-release.mjs" && /\.(?:md|mjs|cjs|js|ts|json|html|css|patch|txt)$/i.test(file));
 const privatePattern = /C:\\Users\\timot|\.codex|AppData\\Roaming|GH_CONFIG_DIR|github_pat_|ghp_[A-Za-z0-9]+|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i;
 for (const file of releaseTextFiles) {
   const text = await readFile(path.join(root, file), "utf8");
@@ -82,8 +109,12 @@ for (const patch of [...controlHashes.keys()].filter((file) => file.endsWith("ta
   assert.ok(info.size > 100, `patch is unexpectedly empty: ${patch}`);
 }
 
-console.log(`PASS: 12 frozen control hashes match`);
+console.log(`PASS: ${controlHashes.size} frozen control hashes match`);
+console.log(`PASS: ${round3ArtifactHashes.size} Round 3 artifacts match their source hashes`);
 console.log(`PASS: ${linkCount} repository-relative Markdown links resolve`);
 console.log(`PASS: ${candidateFiles.length} changed/untracked release files exclude forbidden paths`);
 console.log(`PASS: ${releaseTextFiles.length} release text files contain no private path or credential pattern`);
-console.log("PASS: six GDN patches are present and non-empty");
+const round3Patch = await stat(path.join(root, "evidence/round-3/artifacts/patch-B.diff"));
+assert.ok(round3Patch.size > 100, "Round 3 patch is unexpectedly empty");
+
+console.log("PASS: seven GDN patches are present and non-empty");
