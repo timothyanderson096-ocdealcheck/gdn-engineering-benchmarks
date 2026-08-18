@@ -1,0 +1,20 @@
+diff --git a/index.js b/index.js
+index 6d803165bb7a52f9a23be405a24d30dacca3bb34..36c2232e03b3eb0be166ae6a94b1d76753291603 100644
+--- a/index.js
++++ b/index.js
+@@ -49,8 +49,13 @@ const postProcess = (input, toUpperCase) => {
+ 	SEPARATORS_AND_IDENTIFIER.lastIndex = 0;
+ 	NUMBERS_AND_IDENTIFIER.lastIndex = 0;
+ 
+-	return input.replace(SEPARATORS_AND_IDENTIFIER, (_, identifier) => toUpperCase(identifier))
+-		.replace(NUMBERS_AND_IDENTIFIER, m => toUpperCase(m));
++	let lastSeparatorIndex = input.length - 1;
++	while (lastSeparatorIndex >= 0 && !SEPARATORS.test(input[lastSeparatorIndex])) {
++		lastSeparatorIndex--;
++	}
++
++	return (input.slice(0, lastSeparatorIndex + 1) + input.slice(lastSeparatorIndex + 1).replace(NUMBERS_AND_IDENTIFIER, m => toUpperCase(m)))
++		.replace(SEPARATORS_AND_IDENTIFIER, (_, identifier) => toUpperCase(identifier));
+ };
+ 
+ export default function camelCase(input, options) {

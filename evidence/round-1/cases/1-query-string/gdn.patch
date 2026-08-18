@@ -1,0 +1,70 @@
+diff --git a/base.js b/base.js
+index 9b9ab4f5fbc7db1e60007b102fbf9d419e2a2acc..7d9cf6f3f5fb6b57e7dc8b386bf611df5f668018 100644
+--- a/base.js
++++ b/base.js
+@@ -198,17 +198,45 @@ function parserForArrayFormat(options) {
+ 			};
+ 		}
+ 
+-		case 'comma':
+-		case 'separator': {
++		case 'comma': {
+ 			return (key, value, accumulator) => {
+ 				const isArray = typeof value === 'string' && value.includes(options.arrayFormatSeparator);
+-				const isEncodedArray = (typeof value === 'string' && !isArray && decode(value, options).includes(options.arrayFormatSeparator));
++				const isEncodedArray = typeof value === 'string' && !isArray && decode(value, options).includes(options.arrayFormatSeparator);
+ 				value = isEncodedArray ? decode(value, options) : value;
+ 				const newValue = isArray || isEncodedArray ? value.split(options.arrayFormatSeparator).map(item => decode(item, options)) : (value === null ? value : decode(value, options));
+ 				accumulator[key] = newValue;
+ 			};
+ 		}
+ 
++		case 'separator': {
++			return (key, value, accumulator, rawValue) => {
++				if (value === null) {
++					accumulator[key] = value;
++					return;
++				}
++
++				const values = [];
++				let segmentStart = 0;
++
++				for (let index = 0; index < rawValue.length; index++) {
++					if (rawValue[index] === '%' && /^[\da-f]{2}$/i.test(rawValue.slice(index + 1, index + 3))) {
++						index += 2;
++						continue;
++					}
++
++					if (rawValue[index] === options.arrayFormatSeparator) {
++						values.push(rawValue.slice(segmentStart, index));
++						segmentStart = index + 1;
++					}
++				}
++
++				const isArray = values.length > 0;
++				values.push(rawValue.slice(segmentStart));
++				const decodeValue = item => decode(options.decode ? item.replaceAll('+', ' ') : item, options);
++				accumulator[key] = isArray ? values.map(item => decodeValue(item)) : decodeValue(rawValue);
++			};
++		}
++
+ 		case 'bracket-separator': {
+ 			return (key, value, accumulator) => {
+ 				const isArray = /(\[])$/.test(key);
+@@ -391,6 +419,7 @@ export function parse(query, options) {
+ 		const parameter_ = options.decode ? parameter.replaceAll('+', ' ') : parameter;
+ 
+ 		let [key, value] = splitOnFirst(parameter_, '=');
++		const [, rawValue] = splitOnFirst(parameter, '=');
+ 
+ 		if (key === undefined) {
+ 			key = parameter_;
+@@ -399,7 +428,7 @@ export function parse(query, options) {
+ 		// Missing `=` should be `null`:
+ 		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+ 		value = value === undefined ? null : (['comma', 'separator', 'bracket-separator'].includes(options.arrayFormat) ? value : decode(value, options));
+-		formatter(decode(key, options), value, returnValue);
++		formatter(decode(key, options), value, returnValue, rawValue);
+ 	}
+ 
+ 	for (const [key, value] of Object.entries(returnValue)) {

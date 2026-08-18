@@ -1,0 +1,46 @@
+diff --git a/index.js b/index.js
+index 861971441e624ddfeb8bb13004f3b00f5fa57b38..f4f65a101ef3b33483c5db7f51f0ca968e1a29b6 100644
+--- a/index.js
++++ b/index.js
+@@ -42,6 +42,14 @@ function validateInput(text, columns, position, truncationCharacter) {
+ 	}
+ }
+ 
++function fitTruncationCharacter(truncationCharacter, columns, position, preferTruncationOnSpace) {
++	if (!preferTruncationOnSpace || position === 'middle' || stringWidth(truncationCharacter) <= columns) {
++		return truncationCharacter;
++	}
++
++	return sliceAnsi(truncationCharacter, 0, columns);
++}
++
+ export default function cliTruncate(text, columns, options = {}) {
+ 	const {
+ 		position = 'end',
+@@ -63,6 +71,8 @@ export default function cliTruncate(text, columns, options = {}) {
+ 		return text;
+ 	}
+ 
++	truncationCharacter = fitTruncationCharacter(truncationCharacter, columns, position, preferTruncationOnSpace);
++
+ 	if (columns === 1) {
+ 		return truncationCharacter;
+ 	}
+@@ -134,7 +144,7 @@ export default function cliTruncate(text, columns, options = {}) {
+ 
+ 	if (position === 'start') {
+ 		if (preferTruncationOnSpace) {
+-			const nearestSpace = getIndexOfNearestSpace(text, length - columns + 1, true);
++			const nearestSpace = getIndexOfNearestSpace(text, length - columns + stringWidth(truncationCharacter), true);
+ 			const right = sliceAnsi(text, nearestSpace, length).trim();
+ 			return prependWithInheritedStyleFromStart(truncationCharacter, right);
+ 		}
+@@ -179,7 +189,7 @@ export default function cliTruncate(text, columns, options = {}) {
+ 
+ 	if (position === 'end') {
+ 		if (preferTruncationOnSpace) {
+-			const nearestSpace = getIndexOfNearestSpace(text, columns - 1);
++			const nearestSpace = getIndexOfNearestSpace(text, columns - stringWidth(truncationCharacter));
+ 			const left = sliceAnsi(text, 0, nearestSpace);
+ 			return appendWithInheritedStyleFromEnd(left, truncationCharacter);
+ 		}

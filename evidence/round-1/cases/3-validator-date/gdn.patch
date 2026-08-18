@@ -1,0 +1,23 @@
+diff --git a/src/lib/isDate.js b/src/lib/isDate.js
+index dc69b3bc1d0d55b9468216ed7f5df2a090548ec6..1159b886078a97e2ddaf4719c72b770f95af3c7e 100644
+--- a/src/lib/isDate.js
++++ b/src/lib/isDate.js
+@@ -33,10 +33,14 @@ export default function isDate(input, options) {
+     const dateDelimiter = options.strictMode
+       ? formatDelimiter
+       : options.delimiters.find(delimiter => input.indexOf(delimiter) !== -1);
+-    const dateAndFormat = zip(
+-      input.split(dateDelimiter),
+-      options.format.toLowerCase().split(formatDelimiter)
+-    );
++    const dateParts = input.split(dateDelimiter);
++    const formatParts = options.format.toLowerCase().split(formatDelimiter);
++
++    if (dateParts.length !== formatParts.length) {
++      return false;
++    }
++
++    const dateAndFormat = zip(dateParts, formatParts);
+     const dateObj = {};
+ 
+     for (const [dateWord, formatWord] of dateAndFormat) {
