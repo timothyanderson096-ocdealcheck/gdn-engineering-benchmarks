@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Local explanation of the published GDN Creator–Verifier benchmark evidence.">
+    <title>Creator–Verifier | GDN Evidence</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="GDN verification evidence home"><span class="brand-mark">G</span><span>GDN / Verification Evidence</span></a>
+        <div class="case-id"><span class="live-dot" aria-hidden="true"></span>Round 1 · Case 1 · Published evidence</div>
+      </header>
+
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow">CREATOR–VERIFIER DEMONSTRATION</p>
+          <h1>A passing repair is not a verified repair.</h1>
+          <p class="lede">Both engineers shipped the same plausible one-line fix. Both passed the locked harness and 155-test suite. Only independent boundary verification showed that the repair was still wrong.</p>
+          <div class="hero-actions"><a class="button button-primary" href="#sequence">Inspect the evidence</a><a class="button button-secondary" href="#comparison">Compare both paths</a></div>
+        </div>
+        <aside class="scorecard" aria-label="Round 1 benchmark result">
+          <div class="scorecard-head"><span>ROUND 1 SCOREBOARD</span><span class="evidence-pill">3 cases</span></div>
+          <div class="score-row"><div><span class="score-label">Single-agent baseline</span><strong>2 / 3</strong></div><span class="score-note">verified repairs</span></div>
+          <div class="score-row score-row-accent"><div><span class="score-label">GDN verified</span><strong>3 / 3</strong></div><span class="score-note">verified repairs</span></div>
+          <p class="score-foot">One GDN win · two outcome ties · small-sample evidence</p>
+        </aside>
+      </section>
+
+      <section class="signal-strip" aria-label="Key evidence states">
+        <div><span>INITIAL PATCH</span><strong>Identical</strong></div>
+        <div><span>DIRECT CHECKS</span><strong class="text-green">Pass / Pass</strong></div>
+        <div><span>BOUNDARY PROBES</span><strong class="text-amber">4 failures found</strong></div>
+        <div><span>FINAL CASE RESULT</span><strong>GDN win</strong></div>
+      </section>
+
+      <section class="section sequence-section" id="sequence">
+        <div class="section-heading"><div><p class="eyebrow">THE VERIFICATION PATTERN</p><h2>Follow the decision trail.</h2></div><p>Select a stage to see what changed—and what did not. Repair authority appears only after executable counterevidence.</p></div>
+        <div class="sequence-shell">
+          <nav class="stage-nav" id="stage-nav" aria-label="Verification stages"></nav>
+          <article class="stage-panel" id="stage-panel" aria-live="polite"></article>
+        </div>
+      </section>
+
+      <section class="section evidence-section">
+        <div class="section-heading"><div><p class="eyebrow">THE FOUR COUNTEREXAMPLES</p><h2>Green checks missed raw-encoding boundaries.</h2></div><p>Expected values stay scalar because none of these separators appears literally as a boundary in the raw query value.</p></div>
+        <div class="evidence-table" role="table" aria-label="Case 1 boundary results">
+          <div class="table-row table-head" role="row"><span role="columnheader">Separator</span><span role="columnheader">Raw query</span><span role="columnheader">Expected</span><span role="columnheader">Frozen baseline</span><span role="columnheader">GDN final</span></div>
+          <div id="probe-body"></div>
+        </div>
+      </section>
+
+      <section class="section comparison-section" id="comparison">
+        <div class="section-heading compact-heading"><div><p class="eyebrow">COMPACT COMPARISON</p><h2>Same creator. Different stopping rule.</h2></div></div>
+        <div class="path-grid">
+          <article class="path-card baseline-card">
+            <div class="path-head"><div><span class="path-index">A</span><h3>Single-agent baseline</h3></div><span class="status status-gap">Incomplete</span></div>
+            <ol><li><span>1</span><div><strong>Propose repair</strong><p>One-line change in <code>base.js</code>.</p></div></li><li><span>2</span><div><strong>Run direct checks</strong><p>Harness and repository suite pass.</p></div></li><li class="path-stop"><span>3</span><div><strong>Stop and freeze</strong><p>Four boundary failures remain undiscovered.</p></div></li></ol>
+            <div class="path-result"><span>Full invariant</span><strong>FAIL</strong></div>
+          </article>
+          <article class="path-card gdn-card">
+            <div class="path-head"><div><span class="path-index">B</span><h3>GDN verified</h3></div><span class="status status-verified">Verified</span></div>
+            <ol><li><span>1</span><div><strong>Propose repair</strong><p>The same one-line change.</p></div></li><li><span>2</span><div><strong>Run direct checks</strong><p>The same green signals.</p></div></li><li><span>3</span><div><strong>Try to disprove it</strong><p>Independent probes find four contradictions.</p></div></li><li><span>4</span><div><strong>Repair once, then recheck</strong><p>Raw-aware handling passes expanded probes.</p></div></li></ol>
+            <div class="path-result"><span>Full invariant</span><strong>PASS</strong></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section principle-section">
+        <div class="principle-card"><p class="eyebrow">WHAT GDN ACTUALLY ADDED</p><blockquote>“More agents” is not the point. Independent, evidence-driven verification is the point.</blockquote><div class="principle-grid"><div><span>01</span><p>Translate requirement language into boundary classes.</p></div><div><span>02</span><p>Execute attempts to contradict a passing candidate.</p></div><div><span>03</span><p>Authorize a bounded change only when evidence justifies it.</p></div></div></div>
+        <aside class="limitation-card"><div class="limitation-head"><span>LIMITATION PANEL</span><span>Required context</span></div><h3>Evidence, not a universal claim.</h3><ul><li>Three small public utility-library defects in Round 1.</li><li>One GDN win; two outcome ties with extra verification cost.</li><li>Same inherited model family across sessions.</li><li>Active time, token usage, and credits were unavailable.</li></ul><p>This benchmark supports further replication—not broad superiority.</p></aside>
+      </section>
+
+      <footer><div><strong>Source evidence</strong><span>query-string · commit <code>2e1f45aafb71ef247572b10d9d37dce67cd825ac</code></span></div><div class="footer-result"><span>Case 1 classification</span><strong>Baseline fail · GDN pass</strong></div></footer>
+    </main>
+  </body>
+</html>

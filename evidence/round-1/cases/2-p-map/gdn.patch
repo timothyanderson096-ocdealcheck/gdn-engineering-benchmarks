@@ -1,0 +1,19 @@
+diff --git a/index.js b/index.js
+index f713b9bf363b0bf7a69813139bd9b2240ce22068..efdc1f058b567a53ed9352bb0b8552f1d1388852 100644
+--- a/index.js
++++ b/index.js
+@@ -222,11 +222,13 @@ export function pMapIterable(
+ 						return {done: true};
+ 					}
+ 
++					const currentIndex = index++;
++
+ 					// Spawn if still below concurrency and backpressure limit
+ 					trySpawn();
+ 
+ 					try {
+-						const returnValue = await mapper(await value, index++);
++						const returnValue = await mapper(await value, currentIndex);
+ 
+ 						pendingPromisesCount--;
+ 
