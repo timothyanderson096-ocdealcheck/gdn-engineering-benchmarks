@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -29,9 +29,41 @@ import type {
   VerificationCandidate,
 } from "../src/providers/types.js";
 
-const benchmarkRoot = resolve(process.cwd(), "..", "gdn-benchmarks");
+const EXTERNAL_TRUSTED_CONTROLS_SKIP_REASON = "External trusted benchmark controls are not present.";
+const benchmarkRoot = process.env.GDN_BENCHMARK_ROOT
+  ? resolve(process.env.GDN_BENCHMARK_ROOT)
+  : resolve(process.cwd(), "..", "gdn-benchmarks");
 const dependencyRoot = process.cwd();
 const definition = TRUSTED_BENCHMARK_DEFINITIONS["BENCH-SEEDED-REGRESSION-07"];
+
+async function externalTrustedBenchmarkControlsAvailable(): Promise<boolean> {
+  const requiredPaths = Object.values(TRUSTED_BENCHMARK_DEFINITIONS).flatMap((benchmark) => [
+    resolve(benchmarkRoot, benchmark.benchmarkId, benchmark.baselineArchiveRelativePath),
+    resolve(benchmarkRoot, benchmark.benchmarkId, benchmark.frozenMreRelativePath),
+    resolve(benchmarkRoot, benchmark.benchmarkId, benchmark.seedMutationRelativePath),
+    resolve(benchmarkRoot, benchmark.benchmarkId, benchmark.seededFailureRelativePath),
+    resolve(benchmarkRoot, benchmark.benchmarkId, benchmark.discriminatorCommand.arguments[0]!),
+    resolve(benchmarkRoot, benchmark.benchmarkId, "benchmark-workspace", benchmark.permittedTarget),
+  ]);
+
+  try {
+    await Promise.all(requiredPaths.map((requiredPath) => access(requiredPath)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const externalTrustedBenchmarkControlsPresent = await externalTrustedBenchmarkControlsAvailable();
+
+function trustedIntegrationTest(
+  name: string,
+  fn: () => Promise<void>,
+): void {
+  test(name, {
+    skip: externalTrustedBenchmarkControlsPresent ? false : EXTERNAL_TRUSTED_CONTROLS_SKIP_REASON,
+  }, fn);
+}
 
 function patch(value = "trusted-test-value", decoration: "git" | "plain" = "git"): string {
   const header = decoration === "git"
@@ -230,7 +262,7 @@ function reverseTrustedSeedPatch(seed: string): string {
     return line;
   }).join("\n");
 }
-test("1. valid eligible candidate reaches the trusted verifier", async () => {
+trustedIntegrationTest("1. valid eligible candidate reaches the trusted verifier", async () => {
   await withVerifier({}, async (verifier, runtime) => {
     const result = await verifier.verify(await makeCandidate());
     assert.equal(runtime.prepareCalls, 1);
@@ -239,7 +271,7 @@ test("1. valid eligible candidate reaches the trusted verifier", async () => {
   });
 });
 
-test("2. wrong target is rejected before workspace execution", async () => {
+trustedIntegrationTest("2. wrong target is rejected before workspace execution", async () => {
   await withVerifier({}, async (verifier, runtime) => {
     const candidate = await makeCandidate();
     const result = await verifier.verify({ ...candidate, permittedTarget: "src/wrong.ts" });
@@ -248,7 +280,7 @@ test("2. wrong target is rejected before workspace execution", async () => {
   });
 });
 
-test("3. malformed patch is rejected before workspace execution", async () => {
+trustedIntegrationTest("3. malformed patch is rejected before workspace execution", async () => {
   await withVerifier({}, async (verifier, runtime) => {
     const candidate = await makeCandidate();
     const result = await verifier.verify({ ...candidate, exactPatch: "--- broken\n+++ broken\n" });
@@ -257,7 +289,7 @@ test("3. malformed patch is rejected before workspace execution", async () => {
   });
 });
 
-test("4. protected-asset mutation is rejected", async () => {
+trustedIntegrationTest("4. protected-asset mutation is rejected", async () => {
   await withVerifier({ protectedFailureStage: "after-patch" }, async (verifier, runtime) => {
     const result = await verifier.verify(await makeCandidate());
     assert.equal(runtime.commandIds.length, 0);
@@ -265,7 +297,7 @@ test("4. protected-asset mutation is rejected", async () => {
   });
 });
 
-test("5. target and discriminator pass but regression failure is rejected", async () => {
+trustedIntegrationTest("5. target and discriminator pass but regression failure is rejected", async () => {
   await withVerifier({ commandFailures: new Set(["full-test-suite"]) }, async (verifier, runtime) => {
     const result = await verifier.verify(await makeCandidate());
     assert.deepEqual(runtime.commandIds, ["targeted-presentation", "independent-sibling-regression", "typecheck", "full-test-suite"]);
@@ -274,7 +306,7 @@ test("5. target and discriminator pass but regression failure is rejected", asyn
   });
 });
 
-test("6. target pass plus independent discriminator failure is rejected", async () => {
+trustedIntegrationTest("6. target pass plus independent discriminator failure is rejected", async () => {
   await withVerifier({ commandFailures: new Set(["independent-sibling-regression"]) }, async (verifier) => {
     const result = await verifier.verify(await makeCandidate());
     assert.equal(result.classification, "TARGET_FIXED_REGRESSION_INTRODUCED");
@@ -285,7 +317,7 @@ test("6. target pass plus independent discriminator failure is rejected", async 
   assert.equal(TRUSTED_BENCHMARK_DEFINITIONS["BENCH-SEEDED-MULTISTEP-10"].discriminatorFailureClassification, "PARTIAL_REPAIR");
 });
 
-test("7. complete trusted chain returns VERIFIED_REPAIR with EvidenceDelta", async () => {
+trustedIntegrationTest("7. complete trusted chain returns VERIFIED_REPAIR with EvidenceDelta", async () => {
   await withVerifier({}, async (verifier) => {
     const result = await verifier.verify(await makeCandidate());
     assert.equal(result.classification, "VERIFIED_REPAIR");
@@ -297,7 +329,7 @@ test("7. complete trusted chain returns VERIFIED_REPAIR with EvidenceDelta", asy
   });
 });
 
-test("8. verifier exception fails closed", async () => {
+trustedIntegrationTest("8. verifier exception fails closed", async () => {
   await withVerifier({ prepareThrows: true }, async (verifier) => {
     const result = await verifier.verify(await makeCandidate());
     assert.equal(result.classification, "VERIFIER_ERROR");
@@ -306,7 +338,7 @@ test("8. verifier exception fails closed", async () => {
   });
 });
 
-test("9. candidate cannot forge trusted generation or verification metadata", async () => {
+trustedIntegrationTest("9. candidate cannot forge trusted generation or verification metadata", async () => {
   await withVerifier({}, async (verifier, runtime) => {
     const candidate = await makeCandidate(patch(), { forgeRequestHash: true });
     const forged = { ...candidate, verificationStatus: "VERIFIED", confidence: 1 } as VerificationCandidate;
@@ -317,7 +349,7 @@ test("9. candidate cannot forge trusted generation or verification metadata", as
   });
 });
 
-test("10. normalized duplicate candidates share exactly one verification execution", async () => {
+trustedIntegrationTest("10. normalized duplicate candidates share exactly one verification execution", async () => {
   const first = await makeCandidate(patch("duplicate", "git"), { attemptIds: ["claude-attempt"] });
   const second = await makeCandidate(patch("duplicate", "plain"), { attemptIds: ["gemini-attempt"] });
   const candidates = uniqueVerificationCandidates(await generationRequest(), [attemptFromCandidate(first), attemptFromCandidate(second)]);
@@ -331,7 +363,7 @@ test("10. normalized duplicate candidates share exactly one verification executi
   });
 });
 
-test("11. distinct candidates receive distinct isolated workspace sessions", async () => {
+trustedIntegrationTest("11. distinct candidates receive distinct isolated workspace sessions", async () => {
   await withVerifier({}, async (verifier, runtime) => {
     await verifier.verify(await makeCandidate(patch("one")));
     await verifier.verify(await makeCandidate(patch("two")));
@@ -340,7 +372,7 @@ test("11. distinct candidates receive distinct isolated workspace sessions", asy
   });
 });
 
-test("12. concrete patch-check isolation leaves the seeded benchmark source unchanged", async () => {
+trustedIntegrationTest("12. concrete patch-check isolation leaves the seeded benchmark source unchanged", async () => {
   const temp = await mkdtemp(join(tmpdir(), "gdn-real-runtime-test-"));
   const seededTarget = resolve(benchmarkRoot, definition.benchmarkId, "benchmark-workspace", definition.permittedTarget);
   const before = sha256Hex(await readFile(seededTarget));
@@ -360,7 +392,7 @@ test("12. concrete patch-check isolation leaves the seeded benchmark source unch
   }
 });
 
-test("13. trusted control and answer-key data never enters provider artifacts", async () => {
+trustedIntegrationTest("13. trusted control and answer-key data never enters provider artifacts", async () => {
   const candidate = await makeCandidate();
   const attempt = attemptFromCandidate(candidate);
   const artifacts = generationAttemptArtifacts(attempt);
@@ -370,7 +402,7 @@ test("13. trusted control and answer-key data never enters provider artifacts", 
   assert.equal(combined.includes("regression-sensitivity.ts"), false);
 });
 
-test("14. verification has no capability-registry update path before proof", async () => {
+trustedIntegrationTest("14. verification has no capability-registry update path before proof", async () => {
   const source = await readFile(resolve(process.cwd(), "src/providers/trusted-verifier.ts"), "utf8");
   assert.equal(source.includes("updateCapabilityRegistry"), false);
   await withVerifier({ commandFailures: new Set(["targeted-presentation"]) }, async (verifier) => {
@@ -380,7 +412,7 @@ test("14. verification has no capability-registry update path before proof", asy
   });
 });
 
-test("15. all four hard benchmarks produce hash-validated verification handoffs without provider calls", async () => {
+trustedIntegrationTest("15. all four hard benchmarks produce hash-validated verification handoffs without provider calls", async () => {
   const handoffs = await validateTrustedBenchmarkHandoffs(benchmarkRoot);
   assert.deepEqual(handoffs.map((handoff) => handoff.benchmarkId), [
     "BENCH-SEEDED-REGRESSION-07",
@@ -395,7 +427,7 @@ test("15. all four hard benchmarks produce hash-validated verification handoffs 
   }
 });
 
-test("16. concrete repository-grounded verifier accepts the private trusted control repair", async () => {
+trustedIntegrationTest("16. concrete repository-grounded verifier accepts the private trusted control repair", async () => {
   const temp = await mkdtemp(join(tmpdir(), "gdn-full-chain-test-"));
   const seed = await readFile(resolve(benchmarkRoot, definition.benchmarkId, definition.seedMutationRelativePath), "utf8");
   const reversePatch = reverseTrustedSeedPatch(seed);

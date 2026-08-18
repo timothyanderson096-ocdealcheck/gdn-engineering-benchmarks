@@ -23,7 +23,23 @@ The wider decision layer remains deterministic and model-independent. It keeps e
 
 See [`PROVIDER_AUTOMATION.md`](PROVIDER_AUTOMATION.md) for the provider and trusted-verifier architecture.
 
-## Verified publication baseline
+## Verification baselines
+
+### Public GitHub CI
+
+| Check | Result |
+| --- | ---: |
+| Test files | 16 |
+| Tests discovered | 159 |
+| Self-contained tests passed | 143 |
+| Trusted integration tests skipped | 16 |
+| Failed | 0 |
+| Typecheck | Passed |
+| Build | Passed |
+
+Clean public GitHub CI executes every self-contained test. It registers the 16 trusted-verifier integration tests as skipped because their external trusted benchmark controls are intentionally excluded from this repository. GitHub does not independently verify those gated tests.
+
+### Complete controlled local environment
 
 | Check | Result |
 | --- | ---: |
@@ -34,7 +50,7 @@ See [`PROVIDER_AUTOMATION.md`](PROVIDER_AUTOMATION.md) for the provider and trus
 | Typecheck | Passed |
 | Build | Passed |
 
-This baseline was reproduced from the published snapshot. This publication makes no claim for the unrecovered historical 222-test result.
+The complete controlled local environment includes the external trusted benchmark pack and executes all 159 tests successfully. This publication makes no claim for the unrecovered historical 222-test result.
 
 ## Setup
 
@@ -49,6 +65,10 @@ Install the lockfile-pinned development dependencies:
 npm ci
 ```
 
+Trusted-verifier integration tests use `GDN_BENCHMARK_ROOT` when it is set. For backwards compatibility, they otherwise look for the existing sibling directory `../gdn-benchmarks`. If neither location contains the complete trusted control pack, those 16 tests are registered as skipped with the reason `External trusted benchmark controls are not present.`
+
+The external trusted controls remain outside this public repository and are neither reconstructed nor replaced by public stand-ins.
+
 No provider credentials are needed for the automated test suite. Real provider execution is separately gated and is not part of the published baseline validation.
 
 ## Reproduce the baseline
@@ -59,7 +79,16 @@ npm test
 npm run build
 ```
 
-The expected Node test-runner summary is:
+The expected public GitHub CI summary is:
+
+```text
+tests 159
+pass 143
+fail 0
+skipped 16
+```
+
+With the external trusted benchmark pack available, the expected controlled local summary is:
 
 ```text
 tests 159
