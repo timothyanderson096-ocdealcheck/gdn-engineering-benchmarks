@@ -2,20 +2,21 @@
 
 ## Purpose
 
-This is a controlled technical evidence release for two GDN engineering A/B benchmark rounds and the local Creator–Verifier explanation demo. It is designed to let engineers inspect what was tested, what passed, what failed, and how classifications were made.
+This is a controlled technical evidence release for three GDN engineering A/B benchmark rounds and the local Creator–Verifier explanation demo. Rounds 1 and 2 contain three cases each; Round 3 is a single-case benchmark. The release is designed to let engineers inspect what was tested, what passed, what failed, and how classifications were made.
 
-The release supports one bounded finding: GDN produced 5 verified repairs out of 6 versus 3 out of 6 for matched single-agent baselines across these two rounds. It does not establish universal superiority or certify production or security readiness.
+Across the seven published cases, GDN produced 6 verified repairs versus 3 for matched single-agent baselines. Round 3 specifically supports only a single-case finding: independent verification detected a shared incorrect abstraction and the permitted bounded repair produced the only acceptance-passing patch. The release does not establish universal superiority or certify production or security readiness.
 
 ## Included
 
-- both frozen benchmark protocols and case-selection reports;
-- all six case reports and both final reports;
+- all three frozen benchmark protocols and selection reports;
+- all seven case results and three final reports;
 - the flagship verified-repair case study;
 - frozen task statements and acceptance scripts;
 - SHA-256 control-hash records;
 - blinded-review records and the Round 2 timing/usage record;
-- the six final GDN patch artifacts;
+- the seven final GDN patch artifacts;
 - exact upstream URLs, commits, commands, and reproduction guidance;
+- the Round 3 required evidence artifacts copied byte-for-byte from the completed benchmark workspace;
 - upstream MIT license notices required for the patch context; and
 - a dependency-free local Creator–Verifier evidence demo and tests.
 
@@ -31,7 +32,7 @@ The release supports one bounded finding: GDN produced 5 verified repairs out of
 
 ## Licensing and ownership
 
-The benchmark narratives, controls, task statements, acceptance scripts, GDN patches, and static demo in this release were authored for this benchmark. Patch context refers to six public upstream projects, all verified as MIT-licensed. Their notices are preserved under [`evidence/licenses/`](evidence/licenses/) and indexed in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+The benchmark narratives, controls, task statements, acceptance scripts, GDN patches, and static demo in this release were authored for this benchmark. Patch context refers to seven public upstream projects, all verified as MIT-licensed. Their notices are preserved under [`evidence/licenses/`](evidence/licenses/) and indexed in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
 No complete upstream repository is vendored. Reproduction starts from the named public URL and exact commit, then applies the included patch.
 
@@ -47,6 +48,10 @@ Public GitHub metadata reported that Discussions are disabled, the repository ho
 
 Use:
 
-> Across two controlled Node.js/TypeScript benchmark rounds, GDN achieved 5 verified repairs out of 6, compared with 3 out of 6 for a matched single-agent baseline. The result included two GDN wins, four ties, and zero GDN losses.
+> Across seven controlled Node.js/TypeScript cases, GDN achieved 6 verified repairs compared with 3 for matched single-agent baselines. The result included three GDN wins, four ties, and zero GDN losses.
 
-Do not describe the result as universal superiority, production certification, security certification, independent certification, or proof that GDN always outperforms a single agent.
+For Round 3, use:
+
+> In this single case, both initial engineers produced the same incorrect abstraction, but independent GDN verification detected it and the permitted bounded repair produced the only acceptance-passing patch.
+
+Do not generalize the Round 3 result beyond one case or describe the combined result as universal superiority, production certification, security certification, independent certification, or proof that GDN always outperforms a single agent.

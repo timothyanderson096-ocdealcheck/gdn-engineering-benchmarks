@@ -1,0 +1,42 @@
+diff --git a/src/fetch.ts b/src/fetch.ts
+index 3655a0f..b842ce2 100644
+--- a/src/fetch.ts
++++ b/src/fetch.ts
+@@ -277,7 +277,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+         ...globalOptions.defaults,
+         ...customGlobalOptions.defaults,
+         ...defaultOptions,
+-      },
++      } as FetchOptions,
+     });
+ 
+   return $fetch;
+diff --git a/src/types.ts b/src/types.ts
+index 5f2e818..2dd0881 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -2,17 +2,20 @@
+ // $fetch API
+ // --------------------------
+ 
+-export interface $Fetch {
+-  <T = any, R extends ResponseType = "json">(
++export interface $Fetch<DefaultR extends ResponseType = "json"> {
++  <T = any, R extends ResponseType = DefaultR>(
+     request: FetchRequest,
+     options?: FetchOptions<R>
+   ): Promise<MappedResponseType<R, T>>;
+-  raw<T = any, R extends ResponseType = "json">(
++  raw<T = any, R extends ResponseType = DefaultR>(
+     request: FetchRequest,
+     options?: FetchOptions<R>
+   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
+   native: Fetch;
+-  create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
++  create<R extends ResponseType = DefaultR>(
++    defaults: FetchOptions<R>,
++    globalOptions?: CreateFetchOptions
++  ): $Fetch<R>;
+ }
+ 
+ // --------------------------

@@ -1,0 +1,8 @@
+# Frozen Round 3 evidence must retain its original byte representation.
+evidence/round-3/protocol.md -text whitespace=cr-at-eol
+evidence/round-3/selection.md -text whitespace=cr-at-eol
+evidence/round-3/final-report.md -text whitespace=cr-at-eol
+evidence/round-3/audit/control-hashes.md -text whitespace=cr-at-eol
+evidence/round-3/audit/blinded-review-record.md -text whitespace=cr-at-eol
+evidence/round-3/acceptance/** -text whitespace=cr-at-eol
+evidence/round-3/artifacts/patch-B.diff -text whitespace=cr-at-eol,-blank-at-eol
