@@ -1,6 +1,6 @@
 # Third-party notices
 
-The public benchmark does not vendor complete third-party repositories. The included `gdn.patch` files contain small amounts of contextual source text from six MIT-licensed upstream projects. Their full license notices are preserved here:
+The public benchmark does not vendor complete third-party repositories. The included patch files contain small amounts of contextual source text from seven MIT-licensed upstream projects. Their full license notices are preserved here:
 
 | Project | Public repository | License notice |
 | --- | --- | --- |
@@ -10,5 +10,6 @@ The public benchmark does not vendor complete third-party repositories. The incl
 | camelcase | https://github.com/sindresorhus/camelcase | [MIT](evidence/licenses/camelcase-MIT.txt) |
 | cli-truncate | https://github.com/sindresorhus/cli-truncate | [MIT](evidence/licenses/cli-truncate-MIT.txt) |
 | Commander | https://github.com/tj/commander.js | [MIT](evidence/licenses/commander-MIT.txt) |
+| ofetch | https://github.com/unjs/ofetch | [MIT](evidence/licenses/ofetch-MIT.txt) |
 
 Dependencies referenced by the local demo or existing repository are installed from their public package registries and are not committed as source or dependency directories.

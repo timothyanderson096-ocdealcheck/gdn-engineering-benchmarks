@@ -1,4 +1,4 @@
-# Reproducing the two-round evidence
+# Reproducing the three-round evidence
 
 ## Environment used
 
@@ -19,6 +19,7 @@ The exact serving model identifier, reasoning-effort field, active-agent time, t
 | Round 2 / camelcase | `https://github.com/sindresorhus/camelcase.git` | `c9fa59df2e32611c5c71d0f219f661fa8e1dfdf8` |
 | Round 2 / cli-truncate | `https://github.com/sindresorhus/cli-truncate.git` | `2af3e232c8503d29bd81cb86c6a664721936fa0a` |
 | Round 2 / Commander | `https://github.com/tj/commander.js.git` | `c3ffcfcdac9237cb446ae0acc5b228380e6ba52a` |
+| Round 3 / ofetch | `https://github.com/unjs/ofetch.git` | `3617666273f439e1de2d2d1599c28fe86e075dbc` |
 
 The external repositories are not included in this publication. Clone each repository from its public URL and check out the exact commit. The evidence repository contains only benchmark-owned controls and compact patches.
 
@@ -50,10 +51,23 @@ Round 2 Commander used its owned lockfile:
 npm ci --ignore-scripts --no-audit --no-fund
 ```
 
+Round 3 uses its owned repository lockfile and an independently locked TypeScript 5.6.3 acceptance package. Install the acceptance compiler with:
+
+```sh
+cd evidence/round-3/acceptance
+npm ci --ignore-scripts
+```
+
 Run the case’s acceptance script against the faulty worktree. It should fail before repair:
 
 ```sh
 node <path-to-public-acceptance-script> <path-to-case-worktree>
+```
+
+For Round 3 on Windows/PowerShell, run:
+
+```powershell
+node evidence\round-3\acceptance\run.mjs <path-to-ofetch-worktree>
 ```
 
 Apply the published GDN patch from the corresponding `cases/` directory:
@@ -63,14 +77,21 @@ git apply <path-to-gdn.patch>
 node <path-to-public-acceptance-script> <path-to-case-worktree>
 ```
 
+Round 3's selected patch is at `evidence/round-3/artifacts/patch-B.diff`:
+
+```sh
+git apply <path-to-round-3>/artifacts/patch-B.diff
+```
+
 Then run the repository checks named in the case report. A verified result additionally requires the full stated invariant, scope discipline, and any executed verifier counterexamples to pass.
 
 ## Published case controls
 
 - [Round 1 controls](evidence/round-1/README.md#case-controls-and-patches)
 - [Round 2 controls](evidence/round-2/README.md#case-controls-and-patches)
+- [Round 3 controls](evidence/round-3/README.md#reproducibility-controls-and-selected-patch)
 
-Each case directory contains:
+Each Round 1 and Round 2 case directory contains:
 
 - `task.md` — the frozen matched-arm task;
 - `acceptance.mjs` or `acceptance.cjs` — the frozen external acceptance script; and
@@ -78,12 +99,15 @@ Each case directory contains:
 
 The SHA-256 values in each round’s `audit/control-hashes.md` were recorded before arm dispatch. The public task and acceptance copies must reproduce those values byte-for-byte. Reports were path-normalized separately and are not frozen controls.
 
+Round 3 preserves its acceptance package under `evidence/round-3/acceptance/`, its verified patch under `evidence/round-3/artifacts/`, and its five required completed evidence artifacts byte-for-byte. The publication integrity check pins both the frozen controls and those five artifact copies.
+
 ## Repository checks used
 
 The exact commands and host-specific exceptions are preserved in the round final reports:
 
 - [Round 1 final report](evidence/round-1/final-report.md)
 - [Round 2 final report](evidence/round-2/final-report.md)
+- [Round 3 final report](evidence/round-3/final-report.md)
 
 Notable exceptions:
 
@@ -103,9 +127,9 @@ Notable exceptions:
 
 ## Known limits
 
-- The evidence set contains six small utility-library defects.
-- Dependency resolution for five cases used the same no-lockfile install command in paired worktrees; only Commander supplied an owned lockfile.
-- All coding and verification sessions used the same inherited model family.
+- The evidence set contains seven small utility-library defects, and Round 3 contains only one case.
+- Dependency resolution for five cases used the same no-lockfile install command in paired worktrees; Commander and ofetch supplied owned repository lockfiles.
+- Matched arms used the same model tier within each case; this does not provide model-family independence.
 - There was no external human adjudicator.
 - Exact token and credit economics are unavailable.
 - Public evidence supports reconstruction; it does not vendor dependencies or guarantee future upstream dependency availability.

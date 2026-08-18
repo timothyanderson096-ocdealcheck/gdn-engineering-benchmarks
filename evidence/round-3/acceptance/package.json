@@ -1,0 +1,8 @@
+{
+  "name": "ofetch-generic-create-acceptance",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "typescript": "5.6.3"
+  }
+}
