@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "decision-dome.real-case.v1",
+  "recordKind": "REAL_CASE",
+  "resolutionStatus": "RESOLVED",
+  "caseId": "real-001-gopro-hero8-hero10-bundle",
+  "title": "GoPro HERO8 + HERO10 Bundle Negotiation",
+  "domain": "consumer electronics",
+  "category": "bundle purchase negotiation",
+  "originalQuestion": "Is there a worthwhile deal available by negotiating these two GoPro listings as a bundle?",
+  "desiredResult": "Acquire useful GoPro equipment at a favorable total package value while controlling downside risk.",
+  "timeframe": { "label": "Immediate negotiation opportunity; exact dates unknown", "urgency": "immediate" },
+  "stakes": "medium",
+  "reversibility": "moderate",
+  "caseSource": {
+    "sourceId": "hero8-listing",
+    "sourceType": "marketplace_listing",
+    "sourceName": "Seller/business GoPro HERO8 listing",
+    "accessedAt": { "value": "2000-01-01T00:00:00.000Z", "approximate": true },
+    "domain": "used action-camera listing",
+    "provenance": "Case facts supplied by the buyer; original URL, listing ID, seller identity, and exact access time are unavailable.",
+    "roleInDecision": "Created the initial HERO8 purchase opportunity.",
+    "notes": "Timestamp is an ordinal reconstruction placeholder, not an asserted calendar date."
+  },
+  "verificationSources": [
+    {
+      "sourceId": "hero10-listing",
+      "sourceType": "marketplace_listing",
+      "sourceName": "Same seller/business GoPro HERO10 listing",
+      "accessedAt": { "value": "2000-01-01T01:00:00.000Z", "approximate": true },
+      "domain": "used action-camera listing",
+      "provenance": "Case facts supplied by the buyer; original reference and exact access time are unavailable.",
+      "roleInDecision": "Established the second listing and cross-listing bundle opportunity.",
+      "notes": "Timestamp is ordinal only."
+    },
+    {
+      "sourceId": "negotiation",
+      "sourceType": "conversation",
+      "sourceName": "Buyer-seller bundle negotiation",
+      "accessedAt": { "value": "2000-01-01T02:00:00.000Z", "approximate": true },
+      "domain": "purchase negotiation",
+      "provenance": "Buyer account of the offer, operating condition, seller acceptance, and warranty term; exact message timestamps are unavailable.",
+      "roleInDecision": "Recorded proposed and accepted transaction terms.",
+      "notes": "Timestamp is ordinal only."
+    },
+    {
+      "sourceId": "completed-transaction",
+      "sourceType": "personal_decision",
+      "sourceName": "Completed GoPro bundle transaction",
+      "accessedAt": { "value": "2000-01-01T04:00:00.000Z", "approximate": true },
+      "domain": "completed purchase",
+      "provenance": "Buyer-confirmed completed purchase and received bundle contents; exact transaction records and time were not provided.",
+      "roleInDecision": "Provides resolution truth only and is not used as pre-commitment replay evidence.",
+      "notes": "Timestamp is ordinal only."
+    }
+  ],
+  "decisionStartTime": { "value": "2000-01-01T00:00:00.000Z", "approximate": true },
+  "resolutionTime": { "value": "2000-01-01T04:00:00.000Z", "approximate": true },
+  "initialState": {
+    "hypotheses": [
+      { "id": "bundle-worthwhile", "statement": "A negotiated two-camera bundle can provide a worthwhile package while controlling downside risk.", "kind": "mainstream", "priorWeight": 0.45, "currentWeight": 0.45, "assumptions": ["The seller may consider a bundle offer", "Operation can be checked before commitment"], "falsifiers": ["Seller rejects a worthwhile bundle price", "Cameras cannot be demonstrated working"], "predictions": ["A conditional bundle offer may produce acceptable combined terms"], "status": "active", "actionOnLead": "ACT" },
+      { "id": "bundle-not-worthwhile", "statement": "The available bundle terms will not justify proceeding.", "kind": "alternative", "priorWeight": 0.35, "currentWeight": 0.35, "assumptions": ["The seller may not discount the separate listings", "Downside may remain insufficiently controlled"], "falsifiers": ["Seller accepts favorable combined terms with working confirmation"], "predictions": ["The bundle offer will be declined or remain unattractive"], "status": "active", "actionOnLead": "ABORT" },
+      { "id": "wildcard-terms", "statement": "Unspecified condition, contents, or transaction terms materially change the bundle assessment.", "kind": "wildcard", "priorWeight": 0.2, "currentWeight": 0.2, "assumptions": ["Material deal details are initially unknown"], "falsifiers": ["Working status, accepted price, contents, and warranty terms are sufficiently confirmed"], "predictions": ["A non-price term may materially affect package value or risk"], "status": "active", "actionOnLead": "WAIT" }
+    ],
+    "unknowns": [
+      { "id": "second-listing", "question": "Is there another listing from the same seller that creates bundle leverage?", "expectedDecisionValue": 0.75, "estimatedAcquisitionCost": 0.05, "estimatedTimeCost": 0.05, "status": "open" },
+      { "id": "seller-acceptance", "question": "Will the seller accept AUD $400 for both cameras?", "expectedDecisionValue": 0.95, "estimatedAcquisitionCost": 0.05, "estimatedTimeCost": 0.1, "status": "open" },
+      { "id": "working-confirmation", "question": "Can the cameras be quickly demonstrated or confirmed working before commitment?", "expectedDecisionValue": 0.95, "estimatedAcquisitionCost": 0.1, "estimatedTimeCost": 0.1, "status": "open" },
+      { "id": "warranty-term", "question": "Is any warranty included in the accepted transaction?", "expectedDecisionValue": 0.65, "estimatedAcquisitionCost": 0.05, "estimatedTimeCost": 0.05, "status": "open" }
+    ]
+  },
+  "chronologicalStages": [
+    {
+      "stageId": "stage-1-hero8-identified",
+      "timestamp": { "value": "2000-01-01T00:00:00.000Z", "approximate": true },
+      "newlyAvailableEvidence": [
+        { "evidenceId": "hero8-listed-199", "statement": "A GoPro HERO8 was listed at AUD $199.", "sourceId": "hero8-listing", "acquiredAt": { "value": "2000-01-01T00:00:00.000Z", "approximate": true }, "provenanceType": "seller_claim", "provenance": "Seller/business listing fact as recalled by the buyer.", "evidenceType": "record", "relevance": 0.7, "reliability": 0.8, "directness": 0.9, "freshness": 0.8, "independence": 0.2, "supports": ["bundle-worthwhile"], "contradicts": [], "notes": "No HERO10, bundle offer, acceptance, accessories, warranty, or final outcome is known at this stage." }
+      ],
+      "sourceReferences": ["hero8-listing"],
+      "newlyResolvedUnknowns": []
+    },
+    {
+      "stageId": "stage-2-second-listing",
+      "timestamp": { "value": "2000-01-01T01:00:00.000Z", "approximate": true },
+      "newlyAvailableEvidence": [
+        { "evidenceId": "hero10-listed-299", "statement": "The same seller/business also had a GoPro HERO10 listed at AUD $299.", "sourceId": "hero10-listing", "acquiredAt": { "value": "2000-01-01T01:00:00.000Z", "approximate": true }, "provenanceType": "seller_claim", "provenance": "Second seller/business listing fact as recalled by the buyer.", "evidenceType": "record", "relevance": 0.85, "reliability": 0.8, "directness": 0.9, "freshness": 0.8, "independence": 0.2, "supports": ["bundle-worthwhile"], "contradicts": [] },
+        { "evidenceId": "combined-asking-498", "statement": "The two separate asking prices totalled AUD $498.", "sourceId": "hero10-listing", "acquiredAt": { "value": "2000-01-01T01:00:00.000Z", "approximate": true }, "provenanceType": "inference", "provenance": "Arithmetic connection of AUD $199 and AUD $299 across the two same-seller listings.", "evidenceType": "other", "relevance": 0.9, "reliability": 1, "directness": 0.9, "freshness": 0.8, "independence": 0.3, "supports": ["bundle-worthwhile"], "contradicts": [], "notes": "This identifies bundle leverage; it does not establish seller acceptance or final value." }
+      ],
+      "sourceReferences": ["hero8-listing", "hero10-listing"],
+      "newlyResolvedUnknowns": ["second-listing"]
+    },
+    {
+      "stageId": "stage-3-bundle-offer",
+      "timestamp": { "value": "2000-01-01T02:00:00.000Z", "approximate": true },
+      "newlyAvailableEvidence": [
+        { "evidenceId": "bundle-offer-400", "statement": "The buyer offered AUD $400 for both cameras.", "sourceId": "negotiation", "acquiredAt": { "value": "2000-01-01T02:00:00.000Z", "approximate": true }, "provenanceType": "user_observation", "provenance": "Buyer account of the offer made during negotiation.", "evidenceType": "observation", "relevance": 0.95, "reliability": 0.9, "directness": 1, "freshness": 0.8, "independence": 0.6, "supports": ["bundle-worthwhile"], "contradicts": [] },
+        { "evidenceId": "working-demo-condition", "statement": "The AUD $400 offer was conditional on a quick working demonstration or confirmation that the cameras functioned.", "sourceId": "negotiation", "acquiredAt": { "value": "2000-01-01T02:00:00.000Z", "approximate": true }, "provenanceType": "user_observation", "provenance": "Buyer account of the condition attached to the offer.", "evidenceType": "observation", "relevance": 0.95, "reliability": 0.9, "directness": 1, "freshness": 0.8, "independence": 0.6, "supports": ["bundle-worthwhile"], "contradicts": [], "notes": "This is a proposed risk-control term, not proof that the cameras had yet been demonstrated or confirmed working." }
+      ],
+      "sourceReferences": ["negotiation"],
+      "newlyResolvedUnknowns": [],
+      "notes": ["The offer is attempted negotiation only; acceptance is not yet known."]
+    },
+    {
+      "stageId": "stage-4-seller-acceptance",
+      "timestamp": { "value": "2000-01-01T03:00:00.000Z", "approximate": true },
+      "newlyAvailableEvidence": [
+        { "evidenceId": "seller-accepted-400", "statement": "The seller accepted the AUD $400 bundled offer.", "sourceId": "negotiation", "acquiredAt": { "value": "2000-01-01T03:00:00.000Z", "approximate": true }, "provenanceType": "seller_claim", "provenance": "Seller response as recalled by the buyer.", "evidenceType": "testimony", "relevance": 1, "reliability": 0.9, "directness": 1, "freshness": 0.8, "independence": 0.4, "supports": ["bundle-worthwhile"], "contradicts": ["bundle-not-worthwhile"] },
+        { "evidenceId": "warranty-three-months", "statement": "A 3-month warranty was included or offered as part of the accepted transaction terms.", "sourceId": "negotiation", "acquiredAt": { "value": "2000-01-01T03:00:00.000Z", "approximate": true }, "provenanceType": "seller_claim", "provenance": "Warranty term communicated in connection with the transaction, as recalled by the buyer.", "evidenceType": "testimony", "relevance": 0.75, "reliability": 0.85, "directness": 0.9, "freshness": 0.8, "independence": 0.3, "supports": ["bundle-worthwhile"], "contradicts": [] }
+      ],
+      "sourceReferences": ["negotiation"],
+      "newlyResolvedUnknowns": ["seller-acceptance", "warranty-term"]
+    },
+    {
+      "stageId": "stage-5-resolution",
+      "timestamp": { "value": "2000-01-01T04:00:00.000Z", "approximate": true },
+      "newlyAvailableEvidence": [],
+      "sourceReferences": [],
+      "newlyResolvedUnknowns": [],
+      "notes": ["Outcome-only stage. Purchase completion, actual payment, final contents, and final warranty confirmation remain in outcome/value records and are not replay evidence."]
+    }
+  ],
+  "actualOutcome": {
+    "status": "purchased",
+    "description": "Purchase completed successfully for AUD $400 total: GoPro HERO8, GoPro HERO10, HERO10-associated tripod, three HERO8-associated batteries, HERO8-associated charging dock, and a 3-month warranty.",
+    "correctHypothesisId": "bundle-worthwhile",
+    "successfulActions": ["ACT"],
+    "earliestSufficientStage": 4
+  },
+  "desiredResultAchieved": true,
+  "outcomeNotes": [
+    "AUD $400 was actually paid.",
+    "Final bundle contained the GoPro HERO8, GoPro HERO10, HERO10 tripod, three HERO8 batteries, HERO8 charging dock, and 3-month warranty.",
+    "The supplied facts state that the purchase completed successfully; they do not provide further camera-condition detail or accessory market values.",
+    "Calibration observation: the opportunity emerged by connecting two separately listed items from the same seller, which the unchanged engine does not explicitly model as cross-listing economic structure."
+  ],
+  "usefulSignals": ["hero10-listed-299", "combined-asking-498", "bundle-offer-400", "working-demo-condition", "seller-accepted-400", "warranty-three-months"],
+  "misleadingSignals": [],
+  "relevantUnknowns": ["second-listing", "seller-acceptance", "working-confirmation", "warranty-term"],
+  "valueComponents": [
+    { "id": "combined-list-price", "description": "Combined separate asking price for the HERO8 and HERO10 listings was AUD $498.", "valueType": "FINANCIAL", "stageIntroduced": "stage-2-second-listing", "monetaryValue": { "amount": 498, "currency": "AUD" }, "monetaryValueStatus": "KNOWN", "sourceId": "hero10-listing", "provenance": "Arithmetic from the two listing prices, AUD $199 plus AUD $299." },
+    { "id": "bundle-offer", "description": "Buyer proposed AUD $400 for both cameras.", "valueType": "FINANCIAL", "stageIntroduced": "stage-3-bundle-offer", "monetaryValue": { "amount": 400, "currency": "AUD" }, "monetaryValueStatus": "KNOWN", "sourceId": "negotiation", "provenance": "Buyer-authored negotiation term; not yet an accepted or completed price at this stage." },
+    { "id": "completed-price", "description": "Actual completed bundle price was AUD $400.", "valueType": "FINANCIAL", "stageIntroduced": "RESOLUTION", "monetaryValue": { "amount": 400, "currency": "AUD" }, "monetaryValueStatus": "KNOWN", "sourceId": "completed-transaction", "provenance": "Buyer-confirmed final amount paid." },
+    { "id": "nominal-reduction", "description": "Nominal reduction from combined asking price to completed price was AUD $98.", "valueType": "FINANCIAL", "stageIntroduced": "RESOLUTION", "monetaryValue": { "amount": 98, "currency": "AUD" }, "monetaryValueStatus": "KNOWN", "sourceId": "completed-transaction", "provenance": "Arithmetic difference between AUD $498 combined asking price and AUD $400 actually paid.", "notes": "This does not claim market-value savings." },
+    { "id": "tripod", "description": "Tripod associated with the HERO10 was included in the received bundle.", "valueType": "UTILITY", "stageIntroduced": "RESOLUTION", "monetaryValueStatus": "UNKNOWN", "sourceId": "completed-transaction", "provenance": "Buyer-confirmed final bundle contents; no monetary value supplied." },
+    { "id": "three-batteries", "description": "Three batteries associated with the HERO8 were included in the received bundle.", "valueType": "UTILITY", "stageIntroduced": "RESOLUTION", "monetaryValueStatus": "UNKNOWN", "sourceId": "completed-transaction", "provenance": "Buyer-confirmed final bundle contents; no monetary value supplied." },
+    { "id": "charging-dock", "description": "Battery charging dock associated with the HERO8 was included in the received bundle.", "valueType": "UTILITY", "stageIntroduced": "RESOLUTION", "monetaryValueStatus": "UNKNOWN", "sourceId": "completed-transaction", "provenance": "Buyer-confirmed final bundle contents; no monetary value supplied." },
+    { "id": "working-demo-condition", "description": "Offer was conditional on a quick working demonstration or confirmation of operation.", "valueType": "RISK_REDUCTION", "stageIntroduced": "stage-3-bundle-offer", "monetaryValueStatus": "NOT_APPLICABLE", "sourceId": "negotiation", "provenance": "Buyer-authored conditional negotiation term.", "notes": "Preserves the control mechanism without asserting more condition detail than supplied." },
+    { "id": "warranty", "description": "A 3-month warranty was provided or offered as part of the transaction.", "valueType": "RISK_REDUCTION", "stageIntroduced": "stage-4-seller-acceptance", "monetaryValueStatus": "UNKNOWN", "sourceId": "negotiation", "provenance": "Warranty term communicated during the transaction and confirmed in the final bundle; no monetary value supplied." },
+    { "id": "single-bundle-transaction", "description": "Two separately listed cameras were acquired through one negotiated bundle transaction.", "valueType": "TRANSACTION", "stageIntroduced": "RESOLUTION", "monetaryValueStatus": "NOT_APPLICABLE", "sourceId": "completed-transaction", "provenance": "Buyer-confirmed completed transaction structure.", "notes": "This is distinct from the AUD $98 nominal price reduction." }
+  ],
+  "postOutcomeInformation": [],
+  "provenance": {
+    "authorStatement": "Conservatively reconstructed from facts supplied by the buyer. Exact dates, URLs, listing IDs, seller identity, accessory values, market values, resale intent, and additional condition facts were not supplied and were not invented.",
+    "archiveReferences": []
+  },
+  "metadata": {
+    "authoredAt": "2026-08-13T00:00:00.000Z",
+    "author": "Decision Dome case authoring",
+    "reviewStatus": "DRAFT"
+  }
+}

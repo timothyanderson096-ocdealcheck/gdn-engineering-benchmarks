@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Decision Dome Engineering demonstration: independent verification for AI-generated engineering work.">
+  <title>Decision Dome Engineering — Demonstration</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Decision Dome Engineering home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Decision Dome <strong>Engineering</strong></span>
+    </a>
+    <span class="demo-label">Demonstration case</span>
+  </header>
+
+  <main id="top">
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Model-independent verification layer</p>
+        <h1 id="hero-title">Decision Dome<br><span>Engineering</span></h1>
+        <p class="hero-subtitle">Independent verification for AI-generated engineering work.</p>
+        <p class="hero-support">One model builds. Another challenges. Tests verify. Disagreements stay visible.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#demo-case">View Demo <span aria-hidden="true">↓</span></a>
+          <p>Not another coding agent.<br>A verification and decision layer around them.</p>
+        </div>
+      </div>
+      <div class="hero-diagram" aria-label="Decision Dome verification loop">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="core-status">
+          <span class="status-dot"></span><small>Final status</small><strong>VERIFIED</strong><em>2 / 2 requirements passed</em>
+        </div>
+        <div class="orbit-node node-build">Build</div>
+        <div class="orbit-node node-review">Challenge</div>
+        <div class="orbit-node node-test">Verify</div>
+        <div class="orbit-node node-judge">Judge</div>
+      </div>
+    </section>
+
+    <section class="comparison section shell" aria-labelledby="comparison-title">
+      <div class="section-heading"><p class="eyebrow">The difference</p><h2 id="comparison-title">A claim of completion is not proof.</h2></div>
+      <div class="comparison-grid">
+        <article class="workflow-card single">
+          <div class="card-kicker"><span>01</span> Single-agent workflow</div>
+          <div class="simple-flow"><div>Objective</div><b>↓</b><div>AI Agent</div><b>↓</b><div class="claim">“Done”</div></div>
+          <p class="risk-note"><span>!</span> Completion is a claim until independently verified.</p>
+        </article>
+        <article class="workflow-card dome">
+          <div class="card-kicker"><span>02</span> Decision Dome workflow</div>
+          <div class="dome-flow"><span>Objective</span><i>→</i><span>Builder</span><i>→</i><span>Adversarial review</span><i>→</i><span>Verification</span><i>→</i><span>Evidence judge</span><i>→</i><span>Repair</span><i>→</i><strong>Verified result</strong></div>
+          <p class="proof-note"><span>✓</span> Verification evidence—not agreement—determines the result.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="demo-section section" id="demo-case" aria-labelledby="demo-title">
+      <div class="shell">
+        <div class="section-heading split-heading">
+          <div><p class="eyebrow">Controlled walkthrough</p><h2 id="demo-title">Demonstration case</h2></div>
+          <div class="case-meta"><span>Static data</span><span>TypeScript</span><span>7 stages</span></div>
+        </div>
+        <div class="objective-card">
+          <div class="objective-icon">{ }</div>
+          <div><small>Engineering objective</small><p>Implement a function that updates application state without mutating the original object.</p></div>
+          <span class="objective-id">CASE DD–001</span>
+        </div>
+
+        <ol class="stage-list">
+          <li class="stage complete">
+            <div class="stage-index">01</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role builder">Builder claim</span><time>Iteration 1</time></div><h3>“Implementation is complete and preserves state.”</h3><pre><code>function update(state, value) {
+  state.value = value;
+  return state;
+}</code></pre><p>Confidence claimed: 90% · No verification evidence attached</p></div>
+          </li>
+          <li class="stage challenged">
+            <div class="stage-index">02</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role reviewer">Adversarial reviewer</span><time>Challenge</time></div><h3>Prior state may be mutated in place.</h3><p>The returned object and input object share identity. This violates the immutability requirement and can corrupt history-dependent behavior.</p><div class="disagreement"><span>A</span> Builder: state is preserved <i>vs</i> <span>B</span> Reviewer: input is mutated</div></div>
+          </li>
+          <li class="stage failed">
+            <div class="stage-index">03</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role verifier">Machine verification</span><time>Regression test</time></div><h3>Requirement contradicted by observable behavior.</h3><div class="terminal"><div><span></span><span></span><span></span><em>state-transition.test.ts</em></div><code><b>FAIL</b> expected original.value to equal 1
+     received: 2
+
+Object.is(result, original) → true</code></div><p class="result-line fail-text">CONTRADICTED · Original object changed unexpectedly</p></div>
+          </li>
+          <li class="stage judged">
+            <div class="stage-index">04</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role judge">Evidence judge</span><time>Judgment 1</time></div><h3>Builder’s completion claim is rejected.</h3><p>Agent agreement is irrelevant to this requirement. The machine-verifiable test directly contradicts the claim that prior state is preserved.</p><span class="status-pill contradicted">Claim contradicted</span></div>
+          </li>
+          <li class="stage repaired">
+            <div class="stage-index">05</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role repairer">Repair</span><time>Iteration 2</time></div><h3>Create a new state object instead of mutating the input.</h3><pre><code>function update(state, value) {
+  return { ...state, value };
+}</code></pre><span class="status-pill repair">Repaired revision · proposal-v2</span></div>
+          </li>
+          <li class="stage passed">
+            <div class="stage-index">06</div><div class="stage-line"></div>
+            <div class="stage-content"><div class="stage-top"><span class="role verifier">Re-verification</span><time>Regression test</time></div><h3>Original state is preserved; updated state is returned.</h3><div class="terminal passed-terminal"><div><span></span><span></span><span></span><em>state-transition.test.ts</em></div><code><b>PASS</b> preserves original object
+<b>PASS</b> returns updated value
+<b>PASS</b> build and typecheck</code></div><p class="result-line pass-text">SUPPORTED · 2 / 2 requirements passed</p></div>
+          </li>
+          <li class="stage verified">
+            <div class="stage-index">07</div>
+            <div class="stage-content final-card"><div><small>Final evidence judgment</small><h3>VERIFIED</h3><p>All cited machine-verifiable requirements passed after repair.</p></div><div class="verify-seal">✓</div></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="evidence-section section shell" aria-labelledby="evidence-title">
+      <div class="section-heading"><p class="eyebrow">Evidence, not assertion</p><h2 id="evidence-title">The complete decision trail stays visible.</h2></div>
+      <div class="evidence-grid">
+        <article><span>Requirement</span><strong>Preserve original state</strong><p>Observable pass condition defined before verification.</p></article>
+        <article><span>Builder claim</span><strong>Complete · 90%</strong><p>Recorded as a claim, not promoted to evidence.</p></article>
+        <article class="red"><span>Disagreement</span><strong>State mutation flagged</strong><p>Reviewer challenge preserved after resolution.</p></article>
+        <article class="red"><span>Test evidence</span><strong>Regression test failed</strong><p>Original object changed unexpectedly.</p></article>
+        <article class="amber"><span>Repair</span><strong>Immutable revision</strong><p>Original and repaired artifacts both retained.</p></article>
+        <article class="green"><span>Re-verification</span><strong>All checks passed</strong><p>Build, typecheck, and state test supported.</p></article>
+        <article class="green wide"><span>Evidence judgment</span><strong>SUPPORTED → VERIFIED</strong><p>Verified behavior outranked the original confident claim.</p></article>
+      </div>
+    </section>
+
+    <section class="modes-section section" aria-labelledby="modes-title">
+      <div class="shell">
+        <div class="section-heading split-heading"><div><p class="eyebrow">Progressive decision compression</p><h2 id="modes-title">One result. Three levels of detail.</h2></div><p class="mode-principle">Never delete the detail.<br>Only hide it by default.</p></div>
+        <div class="mode-tabs" role="tablist" aria-label="Output detail modes">
+          <button role="tab" aria-selected="true" aria-controls="mode-panel" data-mode="condensed">Condensed</button>
+          <button role="tab" aria-selected="false" aria-controls="mode-panel" data-mode="balanced">Balanced</button>
+          <button role="tab" aria-selected="false" aria-controls="mode-panel" data-mode="audit">Audit</button>
+        </div>
+        <div id="mode-panel" class="mode-panel" role="tabpanel" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="bottom-cta shell">
+      <div><p class="eyebrow">Start with one bounded task</p><h2>Want to test Decision Dome on a real AI-generated engineering task?</h2><p>Provide one small engineering task. Compare your normal AI workflow with the Dome verification workflow.</p></div>
+      <a class="button primary" href="mailto:?subject=Decision%20Dome%20Engineering%20Pilot">Run a Pilot <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+
+  <footer><div class="shell"><span>Decision Dome Engineering</span><span>Static demonstration · No live model execution</span></div></footer>
+  <script src="./app.js"></script>
+</body>
+</html>

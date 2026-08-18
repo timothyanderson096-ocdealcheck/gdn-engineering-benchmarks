@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "decision-dome.presentation.v1",
+  "mode": "CONDENSED",
+  "conclusion": {
+    "action": "ACQUIRE_INFORMATION",
+    "statement": "Acquire a PPSR check covering write-off and finance status before committing."
+  },
+  "confidence": 0.7160979389431271,
+  "mainReason": "The asking price is $12,500.",
+  "mainRiskOrUncertainty": "a PPSR check covering write-off and finance status",
+  "nextActionOrTrigger": "a PPSR check covering write-off and finance status",
+  "availableExpansions": [
+    {
+      "id": "analysis",
+      "label": "Show analysis",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "evidence",
+      "label": "Show evidence",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "hypotheses",
+      "label": "Show hypotheses",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "source_trail",
+      "label": "Show source trail",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "history",
+      "label": "Show history",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "full_audit",
+      "label": "Show full audit",
+      "targetMode": "AUDIT"
+    }
+  ]
+}

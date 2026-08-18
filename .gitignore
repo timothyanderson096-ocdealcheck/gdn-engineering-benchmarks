@@ -1,0 +1,43 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials/
+
+# Tool and package caches
+.cache/
+.npm/
+.codex/
+*.tsbuildinfo
+
+# Generated benchmark and tournament workspaces
+benchmark-workspaces/
+generated-benchmarks/
+**/tournament/automated-*/
+**/verification-workspaces/
+
+# Machine-local artifacts
+.DS_Store
+Thumbs.db
+*.local
+*.tmp
+
+# Flutter/Dart artifacts are outside this Node.js baseline
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+android/
+ios/
+linux/
+macos/
+windows/

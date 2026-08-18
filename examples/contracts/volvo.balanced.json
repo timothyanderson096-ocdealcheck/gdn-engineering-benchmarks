@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "decision-dome.presentation.v1",
+  "mode": "BALANCED",
+  "conclusion": {
+    "action": "ACQUIRE_INFORMATION",
+    "statement": "Acquire a PPSR check covering write-off and finance status before committing."
+  },
+  "confidence": 0.7160979389431271,
+  "strongestEvidenceDrivers": [
+    {
+      "id": "asking-price",
+      "statement": "The asking price is $12,500.",
+      "sourceId": "listing",
+      "provenance": "Seller listing"
+    },
+    {
+      "id": "dashboard-photo",
+      "statement": "A dashboard photo shows roughly 63,000 km at the time it was taken.",
+      "sourceId": "listing",
+      "provenance": "Listing photograph"
+    },
+    {
+      "id": "seller-odometer",
+      "statement": "The seller claims approximately 67,000 km.",
+      "sourceId": "seller",
+      "provenance": "Seller statement"
+    },
+    {
+      "id": "maintenance-claims",
+      "statement": "The seller claims on-time servicing, new brake rotors, near-new tyres, and promised RWC/registration.",
+      "sourceId": "seller",
+      "provenance": "Seller statement"
+    }
+  ],
+  "highValueUnknowns": [
+    {
+      "id": "ppsr",
+      "question": "a PPSR check covering write-off and finance status",
+      "status": "open",
+      "informationValueScore": 0.922
+    },
+    {
+      "id": "vin",
+      "question": "the VIN",
+      "status": "open",
+      "informationValueScore": 0.918504
+    },
+    {
+      "id": "service-records",
+      "question": "the complete service records",
+      "status": "open",
+      "informationValueScore": 0.81225
+    },
+    {
+      "id": "variant",
+      "question": "the exact engine and variant",
+      "status": "open",
+      "informationValueScore": 0.733863
+    },
+    {
+      "id": "current-odometer",
+      "question": "the current odometer reading",
+      "status": "open",
+      "informationValueScore": 0.725625
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "worth-pursuing",
+      "statement": "the Volvo is worth pursuing subject to verification.",
+      "kind": "mainstream",
+      "weight": 0.7869208120254144,
+      "leading": true
+    },
+    {
+      "id": "too-risky",
+      "statement": "the Volvo carries enough hidden risk that it should not be pursued.",
+      "kind": "alternative",
+      "weight": 0.13559584689291798,
+      "leading": false
+    },
+    {
+      "id": "wildcard-variant",
+      "statement": "an unidentified variant, usage history, or context materially changes the value assessment.",
+      "kind": "wildcard",
+      "weight": 0.07748334108166743,
+      "leading": false
+    }
+  ],
+  "contradictions": [],
+  "reassessment": {
+    "majorUncertainty": "a PPSR check covering write-off and finance status",
+    "nextActionOrTrigger": "a PPSR check covering write-off and finance status",
+    "triggers": [
+      "Resolution of: a PPSR check covering write-off and finance status",
+      "Resolution of: the VIN",
+      "Resolution of: the complete service records",
+      "Material evidence that contradicts the leading hypothesis"
+    ]
+  },
+  "availableExpansions": [
+    {
+      "id": "analysis",
+      "label": "Show analysis",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "evidence",
+      "label": "Show evidence",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "hypotheses",
+      "label": "Show hypotheses",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "source_trail",
+      "label": "Show source trail",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "history",
+      "label": "Show history",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "full_audit",
+      "label": "Show full audit",
+      "targetMode": "AUDIT"
+    }
+  ]
+}
