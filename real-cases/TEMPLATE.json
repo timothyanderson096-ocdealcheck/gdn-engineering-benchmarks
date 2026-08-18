@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "decision-dome.real-case.v1",
+  "recordKind": "TEMPLATE",
+  "templateNotice": "NON-CALIBRATION TEMPLATE. Copy, rename, complete, independently review, and change recordKind to REAL_CASE before use.",
+  "resolutionStatus": "UNRESOLVED",
+  "caseId": "replace-with-stable-id",
+  "title": "Replace with a descriptive title",
+  "domain": "replace-domain",
+  "category": "replace-category",
+  "originalQuestion": "What was the question at decision time?",
+  "desiredResult": "What result was sought?",
+  "timeframe": {
+    "label": "Replace with the historical timeframe",
+    "urgency": "near_term"
+  },
+  "stakes": "medium",
+  "reversibility": "moderate",
+  "caseSource": {
+    "sourceId": "primary-source",
+    "sourceType": "other",
+    "sourceName": "Primary source that created the case",
+    "reference": "URL, archive path, message reference, or other locator",
+    "accessedAt": {
+      "value": "2000-01-01T00:00:00.000Z",
+      "approximate": true
+    },
+    "domain": "source domain",
+    "provenance": "How this source was preserved",
+    "roleInDecision": "How this source created the original decision",
+    "notes": "Do not invent timestamp precision. Set approximate to true when needed."
+  },
+  "verificationSources": [],
+  "decisionStartTime": {
+    "value": "2000-01-01T00:00:00.000Z",
+    "approximate": true
+  },
+  "initialState": {
+    "hypotheses": [
+      {
+        "id": "mainstream",
+        "statement": "Replace with the mainstream hypothesis.",
+        "kind": "mainstream",
+        "priorWeight": 0.5,
+        "currentWeight": 0.5,
+        "assumptions": [],
+        "falsifiers": [],
+        "predictions": [],
+        "status": "active",
+        "actionOnLead": "ACT"
+      },
+      {
+        "id": "alternative",
+        "statement": "Replace with an alternative hypothesis.",
+        "kind": "alternative",
+        "priorWeight": 0.35,
+        "currentWeight": 0.35,
+        "assumptions": [],
+        "falsifiers": [],
+        "predictions": [],
+        "status": "active",
+        "actionOnLead": "ABORT"
+      },
+      {
+        "id": "wildcard",
+        "statement": "Replace with a wildcard hypothesis.",
+        "kind": "wildcard",
+        "priorWeight": 0.15,
+        "currentWeight": 0.15,
+        "assumptions": [],
+        "falsifiers": [],
+        "predictions": [],
+        "status": "active",
+        "actionOnLead": "WAIT"
+      }
+    ],
+    "unknowns": []
+  },
+  "chronologicalStages": [
+    {
+      "stageId": "stage-1",
+      "timestamp": {
+        "value": "2000-01-01T01:00:00.000Z",
+        "approximate": true
+      },
+      "newlyAvailableEvidence": [
+        {
+          "evidenceId": "observation-1",
+          "statement": "Photographed in the wet; cosmetic defects may be harder to assess.",
+          "sourceId": "primary-source",
+          "acquiredAt": {
+            "value": "2000-01-01T01:00:00.000Z",
+            "approximate": true
+          },
+          "provenanceType": "user_observation",
+          "provenance": "User observation of listing photographs; this is not evidence that hail damage existed.",
+          "evidenceType": "observation",
+          "relevance": 0.5,
+          "reliability": 0.5,
+          "directness": 0.4,
+          "freshness": 0.8,
+          "independence": 0.7,
+          "supports": [],
+          "contradicts": [],
+          "notes": "Keep observation and inference language distinct from verified facts."
+        }
+      ],
+      "sourceReferences": ["primary-source"],
+      "newlyResolvedUnknowns": [],
+      "notes": []
+    }
+  ],
+  "actualOutcome": {
+    "status": "unresolved_insufficient",
+    "description": "Template only; no outcome supplied."
+  },
+  "desiredResultAchieved": null,
+  "outcomeNotes": [],
+  "usefulSignals": [],
+  "misleadingSignals": [],
+  "relevantUnknowns": [],
+  "postOutcomeInformation": [],
+  "provenance": {
+    "authorStatement": "Explain how this case was reconstructed without hindsight contamination.",
+    "archiveReferences": []
+  },
+  "metadata": {
+    "authoredAt": "2000-01-01T00:00:00.000Z",
+    "author": "replace-author",
+    "reviewStatus": "DRAFT"
+  }
+}

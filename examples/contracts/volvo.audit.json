@@ -1,0 +1,396 @@
+{
+  "schemaVersion": "decision-dome.presentation.v1",
+  "mode": "AUDIT",
+  "availableExpansions": [
+    {
+      "id": "analysis",
+      "label": "Show analysis",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "evidence",
+      "label": "Show evidence",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "hypotheses",
+      "label": "Show hypotheses",
+      "targetMode": "BALANCED"
+    },
+    {
+      "id": "source_trail",
+      "label": "Show source trail",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "history",
+      "label": "Show history",
+      "targetMode": "AUDIT"
+    },
+    {
+      "id": "full_audit",
+      "label": "Show full audit",
+      "targetMode": "AUDIT"
+    }
+  ],
+  "question": "Is this 2018 Volvo V40 at $12,500 worth pursuing?",
+  "desiredResult": "Find a good-value car without taking unnecessary risk.",
+  "timeframe": {
+    "label": "Immediate",
+    "urgency": "immediate"
+  },
+  "stakes": "medium",
+  "reversibility": "moderate",
+  "conclusion": {
+    "action": "ACQUIRE_INFORMATION",
+    "statement": "Acquire a PPSR check covering write-off and finance status before committing.",
+    "confidence": 0.7160979389431271,
+    "strongestBasis": [
+      "asking-price",
+      "dashboard-photo",
+      "seller-odometer",
+      "maintenance-claims"
+    ],
+    "majorUncertainty": "a PPSR check covering write-off and finance status",
+    "specificNextInformation": "a PPSR check covering write-off and finance status",
+    "reassessmentTriggers": [
+      "Resolution of: a PPSR check covering write-off and finance status",
+      "Resolution of: the VIN",
+      "Resolution of: the complete service records",
+      "Material evidence that contradicts the leading hypothesis"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "asking-price",
+      "statement": "The asking price is $12,500.",
+      "sourceId": "listing",
+      "provenance": "Seller listing",
+      "timestamp": "2026-08-13T00:00:00.000Z",
+      "type": "record",
+      "relevance": 0.75,
+      "reliability": 0.95,
+      "directness": 1,
+      "freshness": 0.95,
+      "independence": 0.2,
+      "supports": [
+        "worth-pursuing"
+      ],
+      "contradicts": []
+    },
+    {
+      "id": "seller-odometer",
+      "statement": "The seller claims approximately 67,000 km.",
+      "sourceId": "seller",
+      "provenance": "Seller statement",
+      "timestamp": "2026-08-13T00:00:00.000Z",
+      "type": "testimony",
+      "relevance": 0.85,
+      "reliability": 0.55,
+      "directness": 0.7,
+      "freshness": 0.9,
+      "independence": 0.2,
+      "supports": [
+        "worth-pursuing"
+      ],
+      "contradicts": []
+    },
+    {
+      "id": "dashboard-photo",
+      "statement": "A dashboard photo shows roughly 63,000 km at the time it was taken.",
+      "sourceId": "listing",
+      "provenance": "Listing photograph",
+      "timestamp": "2026-08-01T00:00:00.000Z",
+      "type": "observation",
+      "relevance": 0.8,
+      "reliability": 0.75,
+      "directness": 0.85,
+      "freshness": 0.7,
+      "independence": 0.35,
+      "supports": [
+        "worth-pursuing"
+      ],
+      "contradicts": []
+    },
+    {
+      "id": "maintenance-claims",
+      "statement": "The seller claims on-time servicing, new brake rotors, near-new tyres, and promised RWC/registration.",
+      "sourceId": "seller",
+      "provenance": "Seller statement",
+      "timestamp": "2026-08-13T00:00:00.000Z",
+      "type": "testimony",
+      "relevance": 0.75,
+      "reliability": 0.5,
+      "directness": 0.55,
+      "freshness": 0.9,
+      "independence": 0.15,
+      "supports": [
+        "worth-pursuing"
+      ],
+      "contradicts": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "seller",
+      "name": "Seller",
+      "domain": "vehicle history",
+      "expertise": 0.65,
+      "historicalTrackRecord": 0.5,
+      "independence": 0.15,
+      "incentiveConflictRisk": 0.85,
+      "position": "unknown"
+    },
+    {
+      "id": "listing",
+      "name": "Vehicle listing",
+      "domain": "vehicle particulars",
+      "expertise": 0.4,
+      "historicalTrackRecord": 0.5,
+      "independence": 0.2,
+      "incentiveConflictRisk": 0.8,
+      "position": "unknown"
+    }
+  ],
+  "sourceObservations": [],
+  "hypotheses": [
+    {
+      "id": "worth-pursuing",
+      "statement": "the Volvo is worth pursuing subject to verification.",
+      "kind": "mainstream",
+      "priorWeight": 0.45,
+      "currentWeight": 0.7869208120254144,
+      "assumptions": [
+        "The listing is materially accurate",
+        "No serious title or mechanical issues exist"
+      ],
+      "falsifiers": [
+        "Adverse PPSR result",
+        "Materially incomplete service history",
+        "Major undisclosed fault"
+      ],
+      "predictions": [
+        "Records and identifiers will broadly match the listing"
+      ],
+      "status": "active",
+      "actionOnLead": "ACT"
+    },
+    {
+      "id": "too-risky",
+      "statement": "the Volvo carries enough hidden risk that it should not be pursued.",
+      "kind": "alternative",
+      "priorWeight": 0.35,
+      "currentWeight": 0.13559584689291798,
+      "assumptions": [
+        "One or more seller claims are incomplete or misleading"
+      ],
+      "falsifiers": [
+        "Clean title, complete records, and satisfactory inspection"
+      ],
+      "predictions": [
+        "Verification will expose a material discrepancy"
+      ],
+      "status": "active",
+      "actionOnLead": "ABORT"
+    },
+    {
+      "id": "wildcard-variant",
+      "statement": "an unidentified variant, usage history, or context materially changes the value assessment.",
+      "kind": "wildcard",
+      "priorWeight": 0.2,
+      "currentWeight": 0.07748334108166743,
+      "assumptions": [
+        "The exact vehicle configuration or history matters materially"
+      ],
+      "falsifiers": [
+        "Variant and full history are verified and unremarkable"
+      ],
+      "predictions": [
+        "VIN or engine details will materially change comparables or risk"
+      ],
+      "status": "active",
+      "actionOnLead": "WAIT"
+    }
+  ],
+  "hypothesisWeights": {
+    "worth-pursuing": 0.7869208120254144,
+    "too-risky": 0.13559584689291798,
+    "wildcard-variant": 0.07748334108166743
+  },
+  "wildcardHypotheses": [
+    {
+      "id": "wildcard-variant",
+      "statement": "an unidentified variant, usage history, or context materially changes the value assessment.",
+      "kind": "wildcard",
+      "priorWeight": 0.2,
+      "currentWeight": 0.07748334108166743,
+      "assumptions": [
+        "The exact vehicle configuration or history matters materially"
+      ],
+      "falsifiers": [
+        "Variant and full history are verified and unremarkable"
+      ],
+      "predictions": [
+        "VIN or engine details will materially change comparables or risk"
+      ],
+      "status": "active",
+      "actionOnLead": "WAIT"
+    }
+  ],
+  "contradictions": [],
+  "hunches": [],
+  "unknowns": [
+    {
+      "id": "vin",
+      "question": "the VIN",
+      "expectedDecisionValue": 0.96,
+      "estimatedAcquisitionCost": 0.08,
+      "estimatedTimeCost": 0.05,
+      "status": "open"
+    },
+    {
+      "id": "variant",
+      "question": "the exact engine and variant",
+      "expectedDecisionValue": 0.78,
+      "estimatedAcquisitionCost": 0.1,
+      "estimatedTimeCost": 0.08,
+      "status": "open"
+    },
+    {
+      "id": "service-records",
+      "question": "the complete service records",
+      "expectedDecisionValue": 0.9,
+      "estimatedAcquisitionCost": 0.15,
+      "estimatedTimeCost": 0.15,
+      "status": "open"
+    },
+    {
+      "id": "current-odometer",
+      "question": "the current odometer reading",
+      "expectedDecisionValue": 0.75,
+      "estimatedAcquisitionCost": 0.05,
+      "estimatedTimeCost": 0.05,
+      "status": "open"
+    },
+    {
+      "id": "ppsr",
+      "question": "a PPSR check covering write-off and finance status",
+      "expectedDecisionValue": 1,
+      "estimatedAcquisitionCost": 0.12,
+      "estimatedTimeCost": 0.12,
+      "status": "open"
+    },
+    {
+      "id": "reason-for-sale",
+      "question": "the seller's reason for sale",
+      "expectedDecisionValue": 0.55,
+      "estimatedAcquisitionCost": 0.04,
+      "estimatedTimeCost": 0.04,
+      "status": "open"
+    }
+  ],
+  "predictionLedger": [],
+  "analysisSnapshots": [
+    {
+      "id": "analysis-1",
+      "timestamp": "2026-08-13T10:00:00.000Z",
+      "hypothesisWeights": {
+        "worth-pursuing": 0.7869208120254144,
+        "too-risky": 0.13559584689291798,
+        "wildcard-variant": 0.07748334108166743
+      },
+      "leadingHypothesisId": "worth-pursuing",
+      "strongestEvidenceIds": [
+        "asking-price",
+        "dashboard-photo",
+        "seller-odometer",
+        "maintenance-claims"
+      ],
+      "contradictions": [],
+      "highestValueUnknowns": [
+        {
+          "id": "ppsr",
+          "question": "a PPSR check covering write-off and finance status",
+          "expectedDecisionValue": 1,
+          "estimatedAcquisitionCost": 0.12,
+          "estimatedTimeCost": 0.12,
+          "status": "open",
+          "informationValueScore": 0.922
+        },
+        {
+          "id": "vin",
+          "question": "the VIN",
+          "expectedDecisionValue": 0.96,
+          "estimatedAcquisitionCost": 0.08,
+          "estimatedTimeCost": 0.05,
+          "status": "open",
+          "informationValueScore": 0.918504
+        },
+        {
+          "id": "service-records",
+          "question": "the complete service records",
+          "expectedDecisionValue": 0.9,
+          "estimatedAcquisitionCost": 0.15,
+          "estimatedTimeCost": 0.15,
+          "status": "open",
+          "informationValueScore": 0.81225
+        },
+        {
+          "id": "variant",
+          "question": "the exact engine and variant",
+          "expectedDecisionValue": 0.78,
+          "estimatedAcquisitionCost": 0.1,
+          "estimatedTimeCost": 0.08,
+          "status": "open",
+          "informationValueScore": 0.733863
+        },
+        {
+          "id": "current-odometer",
+          "question": "the current odometer reading",
+          "expectedDecisionValue": 0.75,
+          "estimatedAcquisitionCost": 0.05,
+          "estimatedTimeCost": 0.05,
+          "status": "open",
+          "informationValueScore": 0.725625
+        }
+      ],
+      "uncertainty": 0.21307918797458558,
+      "notes": [
+        "Weights are transparent comparative aids, not calibrated scientific probabilities."
+      ]
+    }
+  ],
+  "confidenceHistory": [
+    {
+      "timestamp": "2026-08-13T10:00:00.000Z",
+      "confidence": 0.7160979389431271
+    }
+  ],
+  "conclusionHistory": [
+    {
+      "timestamp": "2026-08-13T10:00:00.000Z",
+      "conclusion": {
+        "action": "ACQUIRE_INFORMATION",
+        "statement": "Acquire a PPSR check covering write-off and finance status before committing.",
+        "confidence": 0.7160979389431271,
+        "strongestBasis": [
+          "asking-price",
+          "dashboard-photo",
+          "seller-odometer",
+          "maintenance-claims"
+        ],
+        "majorUncertainty": "a PPSR check covering write-off and finance status",
+        "specificNextInformation": "a PPSR check covering write-off and finance status",
+        "reassessmentTriggers": [
+          "Resolution of: a PPSR check covering write-off and finance status",
+          "Resolution of: the VIN",
+          "Resolution of: the complete service records",
+          "Material evidence that contradicts the leading hypothesis"
+        ]
+      }
+    }
+  ],
+  "outcomes": [],
+  "learningNotes": [],
+  "availabilityNotes": []
+}

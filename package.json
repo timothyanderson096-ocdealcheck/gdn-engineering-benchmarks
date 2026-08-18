@@ -1,0 +1,26 @@
+{
+  "name": "decision-dome",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic, model-independent decision infrastructure.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test test/**/*.test.ts",
+    "example": "tsx examples/volvo.ts",
+    "calibration:synthetic": "tsx examples/calibration.ts",
+    "calibration:real": "tsx examples/real-cases/calibrate.ts",
+    "contracts": "tsx scripts/contracts.ts",
+    "contracts:generate": "tsx scripts/contracts.ts --write",
+    "check": "npm run typecheck && npm test && npm run calibration:real && npm run contracts && npm run example"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

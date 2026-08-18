@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "decision-dome.conditional-commitment.v1",
+  "caseId": "real-001-gopro-hero8-hero10-bundle",
+  "policy": { "minimumConfidence": 0.9, "eligibleBaseActions": ["ACT", "ACQUIRE_INFORMATION"] },
+  "conditionsByStage": {
+    "stage-4-seller-acceptance": [{ "id": "working-demo-required", "statement": "Confirm both cameras are functioning through a quick working demonstration before completing the purchase.", "timing": "BEFORE_COMMITMENT", "status": "REQUIRED", "protectsAgainst": "Committing to cameras whose operation has not been confirmed.", "addressesUnknownIds": ["working-confirmation"], "sourceEvidenceIds": ["working-demo-condition"] }],
+    "stage-5-resolution": [{ "id": "working-demo-required", "statement": "Confirm both cameras are functioning through a quick working demonstration before completing the purchase.", "timing": "BEFORE_COMMITMENT", "status": "REQUIRED", "protectsAgainst": "Committing to cameras whose operation has not been confirmed.", "addressesUnknownIds": ["working-confirmation"], "sourceEvidenceIds": ["working-demo-condition"] }]
+  }
+}
