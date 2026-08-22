@@ -1,0 +1,30 @@
+name: Decomposition verification experiment
+
+on:
+  push:
+    branches:
+      - experiment/decomposition-verification-20260823
+
+permissions:
+  contents: read
+
+jobs:
+  arm-a:
+    name: Arm A acceptance and regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Frozen Arm A acceptance
+        run: node experiments/decomposition-verification-20260823/acceptance/run.mjs experiments/decomposition-verification-20260823/solutions/arm-a-flat.mjs
+      - name: Repository tests
+        run: npm test
+      - name: Repository typecheck
+        run: npm run typecheck
+      - name: Repository build
+        run: npm run build
