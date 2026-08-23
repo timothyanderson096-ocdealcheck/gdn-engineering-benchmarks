@@ -1,7 +1,7 @@
 # Arm C — Depth-2 decomposition + independent GDN verification
 
 ## Freeze state
-Worker output and completion claims below were frozen before inspecting Arm A or Arm B outputs. The verifier section is appended only after the worker freeze.
+Worker output and completion claims below were frozen before inspecting Arm A or Arm B outputs. The verifier section was added only after that freeze.
 
 ## Exact worker prompt
 
@@ -36,6 +36,8 @@ Worker output and completion claims below were frozen before inspecting Arm A or
 - T4.2 Do no I/O, network, logging, time, randomness, or environment reads. **R12**
 
 ## Frozen worker output
+
+Path: `experiments/decomposition-verification-20260823/solutions/arm-c-gdn.mjs`
 
 ```js
 export function adjudicateBatch(checks) {
@@ -132,7 +134,7 @@ export function adjudicateBatch(checks) {
 
 ## Frozen worker completion claims
 
-The worker claims **R1–R12 are implemented**. This is self-report only and is not accepted as evidence.
+The worker claimed **R1–R12 are implemented**. These claims were frozen before any independent execution evidence was observed.
 
 | Requirement | Worker claim |
 |---|---|
@@ -157,4 +159,85 @@ None. No deterministic test, acceptance, typecheck, or build result was used to 
 
 ## Independent verifier
 
-_Pending after worker freeze._
+Verification was performed only after the worker solution and claims were frozen. Worker self-report was not accepted as evidence.
+
+### Frozen acceptance runner
+
+The exact frozen `acceptance/run.mjs` was executed against the exact committed Arm C solution with Node.js v22.16.0.
+
+Command equivalent:
+
+```text
+node acceptance/run.mjs solutions/arm-c-gdn.mjs
+```
+
+Raw result:
+
+```text
+ACCEPTANCE_PASS
+```
+
+### Independent requirement probes
+
+A separate verifier exercised each frozen requirement directly. It was not used to generate or repair the worker solution.
+
+Raw result summary:
+
+```text
+R1  PASS
+R2  PASS
+R3  PASS
+R4  PASS
+R5  PASS
+R6  PASS
+R7  PASS
+R8  PASS
+R9  PASS
+R10 PASS
+R11 PASS
+R12 PASS
+VERIFIER_PASS 12/12
+```
+
+The R12 probe additionally inspected the exact committed solution source for runtime imports/dependencies and prohibited external-effect primitives used by the implementation. No imports, I/O, network, logging, time, randomness, environment reads, timers, or dynamic dependency calls were present.
+
+## Claim -> verification requirement -> probe -> raw result -> adjudication
+
+| Claim | Verification requirement | Independent probe | Raw result | Adjudication |
+|---|---|---|---|---|
+| R1 complete | Non-array input throws TypeError | null, object and string inputs | PASS | PASS |
+| R2 complete | id is string, trims, non-empty | padded id, blank id, numeric id | PASS | PASS |
+| R3 complete | trimmed duplicate rejected; case-sensitive distinction allowed | ` x ` + `x`; `x` + `X` | PASS | PASS |
+| R4 complete | preserve order and caller input | deep-clone comparison, order check, fresh output object check | PASS | PASS |
+| R5 complete | PASS needs non-whitespace string evidence | undefined, empty, whitespace, number, null, valid text | PASS | PASS |
+| R6 complete | FAIL/UNRESOLVED cannot be upgraded by evidence | both statuses with evidence | PASS | PASS |
+| R7 complete | only literal false is optional | false vs undefined/true/0/null/string | PASS | PASS |
+| R8 complete | counts include all normalized checks including optional | optional PASS/FAIL plus required UNRESOLVED | PASS | PASS |
+| R9 complete | overall uses required-only precedence FAIL > UNRESOLVED > PASS | optional failure, required unresolved, required fail, all required pass | PASS | PASS |
+| R10 complete | zero required checks => UNRESOLVED | empty and all-optional batches | PASS | PASS |
+| R11 complete | only exact three statuses accepted | lowercase, SKIP, empty, null, undefined, number | PASS | PASS |
+| R12 complete | no dependencies or prohibited external effects | committed-source static scan plus execution of pure function | PASS | PASS |
+
+## Arm C metrics
+
+- Requirements claimed complete by worker: **12/12**.
+- Requirements independently verified: **12/12**.
+- Frozen acceptance runner: **PASS**.
+- False completion claims: **0**.
+- Defects caught only by independent verification: **0**.
+- Verification false positives: **0**.
+- Worker repair attempts after verification: **0**.
+
+## Execution limitations
+
+Repository-wide regression controls (`npm test`, `npm run typecheck`, `npm run build`) could not be executed because the local runtime could not resolve `github.com` to clone the full branch. The observed clone failure was:
+
+```text
+fatal: unable to access 'https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks.git/': Could not resolve host: github.com
+```
+
+Accordingly, no repository-wide regression pass is claimed. The task-specific frozen acceptance runner and independent requirement probes are the deterministic evidence used for Arm C.
+
+## Arm C result boundary
+
+Arm C passed all frozen task-specific checks. In this case verification **confirmed** the worker rather than finding a residual defect. This demonstrates evidence-gated completion on the selected task, but it does not show that verification improved the implementation, and it does not establish general superiority.
