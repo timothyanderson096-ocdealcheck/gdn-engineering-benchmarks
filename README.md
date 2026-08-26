@@ -8,6 +8,34 @@ The key difference is not “more agents.” It is independent, evidence-driven 
 
 All seven cases—including ties and the mutual failure—are available here with protocols, pinned commits, frozen task statements, acceptance controls, control hashes, blinded review records, patches, commands, and limitations.
 
+## Current highlights and ongoing work
+
+### Flagship external reference — Micopay PR #34
+
+A GDN-style verification contribution to [Micopay/micopaybridge PR #34](https://github.com/Micopay/micopaybridge/pull/34) was merged after the maintainer explicitly selected it over a competing implementation on the same issue.
+
+The accepted approach did more than patch the visible mismatch:
+
+- it challenged the lower-risk architectural option instead of assuming the more obvious ownership change was safe;
+- it identified that changing schema ownership without also changing startup sequencing could break clean-database startup;
+- its parity test exposed a real runtime/migration divergence: `min_rate` was `DECIMAL(5,4)` at runtime versus `DECIMAL(10,6)` in the migration;
+- a mutation check restored the old type and confirmed that the targeted parity assertion failed;
+- the resulting guard runs offline from source definitions, so future schema drift can fail CI without requiring PostgreSQL.
+
+The maintainer specifically cited the architectural reasoning, the real defect found by the parity test, and the mutation check as reasons this PR was chosen. This is currently the strongest third-party public reference for the verification-first engineering approach.
+
+### Ongoing external verification work
+
+Additional public engineering contributions are being used to test the same workflow across different repositories and problem classes: inspect the requirement, challenge the apparent fix, build an executable assertion, attempt to falsify the repair, and only then classify the result.
+
+Work in progress is **not counted as evidence** in the headline benchmark. Only results that are independently reviewable, merged, or otherwise externally validated will be promoted into the evidence set.
+
+### Internal hardening / dogfooding
+
+The same verification discipline is also being applied internally to OC Labs software: extracting decision logic into directly testable services, adding invariant and boundary tests, enforcing fail-closed validator contracts, removing duplicated or dead code, and keeping unverified changes off production paths.
+
+This internal work is treated as engineering hardening rather than external proof. Its purpose is to make the method stricter on our own software before making broader claims about it elsewhere.
+
 ## Results
 
 | Round and case | Single-agent baseline | GDN | Comparative result |
