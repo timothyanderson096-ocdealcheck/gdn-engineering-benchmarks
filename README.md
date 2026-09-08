@@ -1,4 +1,6 @@
-# GDN engineering verification evidence
+# GDN engineering verification evidence — OC Labs
+
+Public software verification evidence from **[Spotted Ridge Engineering by OC Labs](https://oc-labs.com.au/)**. Explore the [independent software verification service](https://oc-labs.com.au/software-check/) or inspect the reproducible results and limitations below.
 
 GDN is an evidence-driven verification approach for AI-assisted software engineering. It separates creation from independent verification so that a plausible repair is not accepted merely because it looks correct or passes the most obvious checks.
 
@@ -96,11 +98,17 @@ It contains no analytics, tracking, credentials, external services, or publishin
 - Exact active-agent time, serving model identifier, reasoning effort, token usage, and credit cost were unavailable.
 - This is not production certification, security certification, or proof of universal superiority.
 
-## Work with OC Labs / Request a GDN pilot
+## Work with Spotted Ridge Engineering by OC Labs
 
-Potential pilot inputs include a real engineering defect, an AI-generated change that needs independent challenge, or an existing verification workflow that may be accepting false positives.
+Spotted Ridge Engineering is the software verification service from OC Labs, using the GDN verification method. **Bounded software checks start from A$249** for one agreed software claim, behaviour or proposed fix. Scope, price and delivery time are agreed before work begins.
 
-The publication audit found GitHub Discussions disabled for this repository and found no verified public OC Labs website or profile contact URL. This release therefore does not invent an email address, contact form, or pilot endpoint. A verified public channel should be added before this section is used as an operational request path.
+- [Explore software checks and the published offers](https://oc-labs.com.au/software-check/).
+- [Read how the GDN method works](https://oc-labs.com.au/gdn/).
+- [Enquire by email](mailto:tim@oc-labs.com.au?subject=Software%20verification%20enquiry%20from%20GitHub%20evidence).
+
+When enquiring, include the expected and observed behaviour, the repository or build version, and the decision that needs evidence. Do not post credentials or private customer data in public issues.
+
+These public records document specific engineering work and controlled experiments. Their stated scope and limitations apply; open-source contributions do not imply a customer relationship or endorsement.
 
 ## Accurate public finding
 
