@@ -14,6 +14,8 @@ All seven cases—including ties and the mutual failure—are available here wit
 
 ### Flagship external reference — Micopay PR #34
 
+[Read the case study: database schema drift and the accepted verification patch](evidence/case-study/micopay-schema-parity.md).
+
 A GDN-style verification contribution to [Micopay/micopaybridge PR #34](https://github.com/Micopay/micopaybridge/pull/34) was merged after the maintainer explicitly selected it over a competing implementation on the same issue.
 
 The accepted approach did more than patch the visible mismatch:
