@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -86,7 +87,10 @@ def run_case(root, name, count, mode="linear", no_reduce_inputs=False):
     save_json([{ "x": np.asarray(item["x"], dtype=np.float32)} for item in references], folder / "inputs.json")
     original = evaluate(folder / "original.onnx", references)
     assert all(original["matches"])
-    cmd = [sys.executable, "-m", "polygraphy", "debug", "reduce", "original.onnx",
+    executable = shutil.which("polygraphy")
+    if executable is None:
+        raise RuntimeError("Polygraphy CLI entry point is not installed")
+    cmd = [executable, "debug", "reduce", "original.onnx",
            "--mode", mode, "--output", "reduced.onnx", "--load-inputs", "inputs.json",
            "--show-output", "--fail-code", "1",
            "--no-reduce-inputs" if no_reduce_inputs else "--no-reduce-outputs",
