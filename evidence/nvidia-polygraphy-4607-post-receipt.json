@@ -1,0 +1,18 @@
+{
+  "issue": "NVIDIA/TensorRT#4607",
+  "comment_id": 5613374353,
+  "url": "https://github.com/NVIDIA/TensorRT/issues/4607#issuecomment-5613374353",
+  "author": "timothyanderson096-ocdealcheck",
+  "created_at": "2026-09-10T04:52:59Z",
+  "body": "I independently reproduced the branch-freezing part of this issue against TensorRT commit c93b7d4893184af4882f9f1862e13a5c64b8677d using Polygraphy and ONNX Runtime on CPU.\n\nA four-node branched Identity/Add graph produces outputs [2, 4] for input samples [1, 2]. With correct per-sample intermediate feeds, input reduction in both linear and bisect modes produces [2, 3]: a removed branch is frozen using the first sample. Single-sample and --no-reduce-inputs controls preserve their expected outputs. The original graph passes the checker; this reproduction isolates a mismatch introduced by reduction.\n\nI prepared a conservative guard that rejects branch freezing when the reducer's data loader contains multiple iterations. A shared DataLoaderCache lets the check handle one-shot generators and previously cached fallback outputs. The diagnostic points to a consistent single-sample run or --no-reduce-inputs.\n\nValidation against the pinned source:\n\nEight regression cases fail before the patch and pass afterward.\n\nAll 16 focused CPU tests pass afterward, including eight controls.\n\nThe full TensorRT/Polygraphy test suite was not run; the self-contained test file was run with --noconftest.\n\nThis is a guard against incorrect reduction, not full multi-sample branch-freezing support. It does not duplicate the separate data to-input aliasing fix in #4779.\n\n[Reproduction and validation scripts](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/tree/ab1ecaaa0644f48669336cace102b836ba5d1491/evidence/in-progress/nvidia-polygraphy-4607) · [Passing validation run](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34438215413) · [Tested patch](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/blob/agent/nvidia-polygraphy-4607-20260910/evidence/nvidia-polygraphy-4607-verified-guard.patch)\n\nWould this focused guard be an acceptable direction for a PR?",
+  "verified": true,
+  "posted_by": "user",
+  "preceding_connector_attempt": {
+    "status": "failed",
+    "http_status": 403,
+    "error": "Resource not accessible by integration"
+  },
+  "maintainer_response_received": false,
+  "pull_request": null,
+  "next_step": "Await maintainer guidance on the focused guard before upstream code review."
+}

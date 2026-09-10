@@ -1,6 +1,6 @@
 # Polygraphy #4607: tested branch-freezing guard
 
-Verified on 10 September 2026. Status: patch tested in the independent evidence repository; not submitted to or accepted by NVIDIA.
+Verified on 10 September 2026. Status: patch tested in the independent evidence repository; [issue discussion posted](https://github.com/NVIDIA/TensorRT/issues/4607#issuecomment-5613374353) by timothyanderson096-ocdealcheck on 10 September 2026 at 04:52:59 UTC. Awaiting maintainer guidance. No upstream pull request or acceptance.
 
 The patch prevents the covered multi-iteration input reductions from silently replacing a branch with values from only the first iteration. It rejects the operation with an actionable diagnostic. It does not implement general multi-sample branch freezing.
 
@@ -55,10 +55,10 @@ The guard is deliberately conservative and also rejects branches whose values ha
 
 The separate data-to-input aliasing problem is excluded; [PR #4779](https://github.com/NVIDIA/TensorRT/pull/4779) already addresses it.
 
-The upstream issue remains open with no comments at the final check. [NVIDIA contribution rules](https://github.com/NVIDIA/TensorRT/blob/c93b7d4893184af4882f9f1862e13a5c64b8677d/CONTRIBUTING.md) require engineer approval of the issue before code review and contributor DCO sign-off for a submitted patch. The [prepared issue note](nvidia-polygraphy-4607-issue-comment.md) asks whether this narrow approach is acceptable. No issue comment, pull request, legal sign-off, or claimed NVIDIA endorsement has been made.
+The upstream issue is open. The user's technical note is published as [comment 5613374353](https://github.com/NVIDIA/TensorRT/issues/4607#issuecomment-5613374353); no maintainer response was present at verification. [NVIDIA contribution rules](https://github.com/NVIDIA/TensorRT/blob/c93b7d4893184af4882f9f1862e13a5c64b8677d/CONTRIBUTING.md) require engineer approval of the issue before code review and contributor DCO sign-off for a submitted patch. The [published issue note](https://github.com/NVIDIA/TensorRT/issues/4607#issuecomment-5613374353) asks whether this narrow approach is acceptable. No upstream pull request, legal sign-off, or claimed NVIDIA endorsement has been made.
 
 ## Wording suitable for a future evidence page
 
-“Independently reproduced an incorrect branch-freezing case in NVIDIA's open-source Polygraphy reducer and prepared a tested guard against it. Eight regression cases failed on the pinned original source; all 16 focused CPU tests passed with the proposed patch. Upstream review pending submission.”
+“Independently reproduced an incorrect branch-freezing case in NVIDIA's open-source Polygraphy reducer and prepared a tested guard against it. Eight regression cases failed on the pinned original source; all 16 focused CPU tests passed with the proposed patch. Issue discussion posted; awaiting maintainer guidance before a pull request.”
 
 Update that final status only when a real upstream event occurs.

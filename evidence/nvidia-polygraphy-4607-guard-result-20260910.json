@@ -67,7 +67,17 @@
     "workflow_conclusion": "success",
     "workflow_job_id": 102747625202,
     "workflow_run_id": 34438215413,
-    "workflow_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34438215413"
+    "workflow_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34438215413",
+    "upstream_discussion": {
+      "comment_id": 5613374353,
+      "url": "https://github.com/NVIDIA/TensorRT/issues/4607#issuecomment-5613374353",
+      "author": "timothyanderson096-ocdealcheck",
+      "created_at": "2026-09-10T04:52:59Z",
+      "posted_by_user": true,
+      "verified": true,
+      "maintainer_response_received": false
+    },
+    "submission_status": "Issue discussion posted; patch has not been submitted as an upstream pull request."
   },
   "python": "3.12.14",
   "upstream_sha": "c93b7d4893184af4882f9f1862e13a5c64b8677d"
