@@ -35,7 +35,8 @@ jobs:
       - name: Install CPU dependencies and exact upstream Python tools
         run: |
           python -m pip install 'numpy==2.3.5' 'onnx==1.22.0' 'onnxruntime==1.23.2' 'colored==2.3.1'
-          python -m pip install --no-deps -e upstream/tools/Polygraphy -e upstream/tools/onnx-graphsurgeon
+          python -m pip install setuptools wheel
+          python -m pip install --no-deps --no-build-isolation -e upstream/tools/Polygraphy -e upstream/tools/onnx-graphsurgeon
       - name: Run reproduction and controls
         run: python packet/evidence/in-progress/nvidia-polygraphy-4607/reproduce.py --artifacts artifacts
       - name: Print evidence
