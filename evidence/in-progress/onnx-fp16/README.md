@@ -22,9 +22,30 @@ upstream contributors. This packet concerns the separate float16 regression.
 
 ## Verification boundaries
 
-Local helper checks reproduced the regression in 30 cases. The proposed helper
-passed those 30 cases and a separate 144-case numerical matrix. Actual evaluator
-and repository gates remain pending until the linked GitHub Actions job succeeds.
+Verified on 10 September 2026:
+
+- Released ONNX 1.22.0 baseline: 24 targeted evaluator cases passed.
+- Inspected Conv in that runtime: 24 expected overflow failures.
+- Patched Conv in that runtime: 24 targeted cases passed, plus 16 checks of
+  non-float16 compatibility, 30 helper regressions and 144 numerical cases.
+- Build of pinned current ONNX source: 24 expected baseline failures followed
+  by 24 patched passes. The reference-evaluator file passed 480 tests, with
+  8 skipped and zero failures or errors.
+
+The source run's overall result was red because Ruff requested line wrapping
+of one return statement. The reviewed branch applies that formatting change.
+A separate lint job verifies identical Python syntax trees against the exact
+file hashes tested above, then reruns ONNX's required changed-file lintrunner.
+It does not repeat or claim a new native build for a formatting-only change.
+
+Source/runtime test receipt:
+https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34435471817
+
+Expanded saved reports and lint diagnostic:
+https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34436126781
+
+Check the reviewed branch's **ONNX reviewed patch lint** run for the final lint
+result. The previous red run remains part of the evidence history.
 
 The workflow runs two bounded standard Ubuntu jobs without secrets:
 
@@ -35,8 +56,8 @@ The workflow runs two bounded standard Ubuntu jobs without secrets:
    pass afterward; then the reference-evaluator test file and scoped lintrunner
    checks run.
 
-A passing run does not establish a pass of the entire upstream cross-platform
-CI matrix or ONNX Runtime execution providers. No upstream issue or PR has been
+A passing lint result does not establish a pass of the entire upstream cross-platform
+CI matrix, the entire Python suite or ONNX Runtime execution providers. No upstream issue or PR has been
 submitted as part of this packet. Workflow logs and JUnit records are the source
 of truth; pending or failed runs must not be described as successful validation.
 

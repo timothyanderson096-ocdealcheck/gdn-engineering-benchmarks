@@ -1,0 +1,46 @@
+name: ONNX reviewed patch lint
+
+on:
+  push:
+    branches: [agent/onnx-fp16-reviewed-20260910]
+    paths:
+      - 'evidence/in-progress/onnx-fp16/**'
+      - '.github/workflows/onnx-fp16-lint.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Verify formatting-only change and run ONNX lintrunner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: packet
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 299f6d3a190f2494046e88948250840ccc79ba4a
+          path: tested-packet
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: onnx/onnx
+          ref: 27d7d6890cb8bfa7ed5cda2f2656f82b6af0736a
+          path: upstream
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Verify identical Python syntax trees to the tested patch
+        run: python packet/evidence/in-progress/onnx-fp16/verify_format_only.py --upstream upstream --previous-patch tested-packet/evidence/in-progress/onnx-fp16/onnx-fp16-conv-bias.patch
+      - name: Run required ONNX changed-file lintrunner
+        working-directory: upstream
+        run: |
+          git branch -f main HEAD
+          python -m pip install 'lintrunner==0.13.1' 'lintrunner-adapters==0.14.1'
+          lintrunner init
+          lintrunner
+          git diff --check

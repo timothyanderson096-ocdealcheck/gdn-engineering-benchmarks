@@ -126,7 +126,9 @@ def _conv_implementation(
     if B is not None:
         if B.size == 1:
             result = mul + B
-            return result.astype(X.dtype, copy=False) if X.dtype == np.float16 else result
+            return (
+                result.astype(X.dtype, copy=False) if X.dtype == np.float16 else result
+            )
         new_shape = [1] * len(mul.shape)
         new_shape[1] = -1
         mul += B.reshape(tuple(new_shape))

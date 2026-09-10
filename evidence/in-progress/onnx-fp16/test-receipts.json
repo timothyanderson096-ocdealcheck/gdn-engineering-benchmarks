@@ -1,0 +1,206 @@
+{
+  "observed_date": "2026-09-10",
+  "source_run": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34435471817",
+  "expanded_reports": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34436126781",
+  "source": {
+    "source_commit": "27d7d6890cb8bfa7ed5cda2f2656f82b6af0736a",
+    "patch_sha256": "7535d2f0689662c72938618579ce85fa2df97d5f591308ce527ae9b810f49011",
+    "operator_sha256": "e74bcba53d3c74884a0fdcc4890ef28c60cb2d5ccc6d2ed1725a51214f64f866",
+    "test_sha256": "083f12766d5bbae2138ce7adc21b25de5803eb910f027da5712b2b1514c682ef",
+    "stages": {
+      "patched_regression": {
+        "all_cases_match_regression_name": true,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 0,
+        "failures": 0,
+        "passed": 24,
+        "returncode": 0,
+        "skipped": 0,
+        "tests": 24
+      },
+      "reference_evaluator_file": {
+        "all_cases_match_regression_name": false,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 0,
+        "failures": 0,
+        "passed": 480,
+        "returncode": 0,
+        "skipped": 8,
+        "tests": 488
+      },
+      "unpatched_regression": {
+        "all_cases_match_regression_name": true,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 24,
+        "failures": 24,
+        "passed": 0,
+        "returncode": 1,
+        "skipped": 0,
+        "tests": 24
+      }
+    },
+    "packages": {
+      "Pillow": "12.3.0",
+      "editorconfig-checker": null,
+      "lintrunner": "0.13.1",
+      "lintrunner-adapters": "0.14.1",
+      "ml_dtypes": "0.6.0",
+      "mypy": null,
+      "numpy": "2.0.0",
+      "onnx": "1.24.0",
+      "protobuf": "6.33.6",
+      "pytest": "9.1.1",
+      "ruff": null
+    },
+    "lint_packages": {
+      "lintrunner": "0.13.1",
+      "lintrunner-adapters": "0.14.1",
+      "ruff": "0.16.4"
+    },
+    "overall_result": "FAILED",
+    "error": "lintrunner_changed_files failed; inspect combined.log"
+  },
+  "released_runtime": {
+    "scope": "ONNX 1.22.0 real ReferenceEvaluator with inspected and proposed Conv source; not a full main build",
+    "stages": {
+      "inspected_upstream": {
+        "errors": 0,
+        "exit_code": 1,
+        "expected_outcome_confirmed": true,
+        "failures": 24,
+        "source_sha256": "5d8564b3779a11faa2162184cede353cb531dc3a113c7b62eeac2a400409b949",
+        "tests": 24
+      },
+      "packaged_baseline": {
+        "errors": 0,
+        "exit_code": 0,
+        "expected_outcome_confirmed": true,
+        "failures": 0,
+        "tests": 24
+      },
+      "proposed_patch": {
+        "errors": 0,
+        "exit_code": 0,
+        "expected_outcome_confirmed": true,
+        "failures": 0,
+        "source_sha256": "a21eed2d650fe8136f1421901005ec93103184eef09f745fe7d94d60ba4a0da3",
+        "tests": 24
+      }
+    },
+    "compatibility": [
+      {
+        "bias": false,
+        "dtype": "float32",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "float32",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "float32",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "float32",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "float64",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "float64",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "float64",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "float64",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "int32",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "int32",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "int32",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "int32",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "bfloat16",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "bfloat16",
+        "group": 1,
+        "matches_upstream": true
+      },
+      {
+        "bias": false,
+        "dtype": "bfloat16",
+        "group": 2,
+        "matches_upstream": true
+      },
+      {
+        "bias": true,
+        "dtype": "bfloat16",
+        "group": 2,
+        "matches_upstream": true
+      }
+    ],
+    "helper_counts": {
+      "baseline_passes": 30,
+      "broad_passes": 144,
+      "fixed_passes": 30,
+      "original_failures": 30
+    },
+    "result": "TARGETED EVALUATOR AND NUMERICAL CHECKS PASSED; REPOSITORY GATES STILL PENDING"
+  },
+  "limits": {
+    "entire_python_suite": "NOT RUN",
+    "cross_platform_ci": "NOT RUN",
+    "onnxruntime_providers": "NOT RUN",
+    "upstream_submission": "NOT SUBMITTED"
+  },
+  "formatting_followup": "Reviewed branch wraps one return statement, verifies identical ASTs against actually tested source hashes, then runs changed-file lintrunner. Consult that run for its outcome."
+}

@@ -1,6 +1,6 @@
 --- a/onnx/reference/ops/op_conv.py
 +++ b/onnx/reference/ops/op_conv.py
-@@ -113,18 +113,23 @@
+@@ -113,18 +113,25 @@
      output_size = X.shape[0] * int(np.prod(out_shape))
      c2 = c2.reshape((group, flattened_kernel_size, output_size))
      w_reshaped = W.reshape((group, W.shape[0] // group, flattened_kernel_size))
@@ -18,7 +18,9 @@
          if B.size == 1:
 -            return mul + B
 +            result = mul + B
-+            return result.astype(X.dtype, copy=False) if X.dtype == np.float16 else result
++            return (
++                result.astype(X.dtype, copy=False) if X.dtype == np.float16 else result
++            )
          new_shape = [1] * len(mul.shape)
          new_shape[1] = -1
          mul += B.reshape(tuple(new_shape))
