@@ -1,3 +1,5 @@
+> Update, 10 September 2026: a focused guard has now passed validation. See the [tested guard and current status](nvidia-polygraphy-4607-guard-review.md). The reproduction report below is retained as historical evidence.
+
 # NVIDIA Polygraphy #4607: independent CPU reproduction
 
 Verified on 10 September 2026 against NVIDIA/TensorRT commit `c93b7d4893184af4882f9f1862e13a5c64b8677d`.
