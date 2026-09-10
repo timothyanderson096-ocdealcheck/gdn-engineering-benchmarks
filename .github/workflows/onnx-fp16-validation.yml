@@ -1,0 +1,89 @@
+name: ONNX float16 validation
+
+on:
+  push:
+    branches: [agent/onnx-fp16-validation-20260910]
+    paths:
+      - 'evidence/in-progress/onnx-fp16/**'
+      - '.github/workflows/onnx-fp16-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: onnx-fp16-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  released-runtime:
+    name: Released runtime and numerical matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Baseline, regression, proposed fix and compatibility
+        run: python evidence/in-progress/onnx-fp16/run_checks.py
+      - name: Preserve scoped results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: released-runtime-evidence
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            evidence/in-progress/onnx-fp16/verification-results.json
+            evidence/in-progress/onnx-fp16/verification-log.txt
+            evidence/in-progress/onnx-fp16/regression-results.json
+            evidence/in-progress/onnx-fp16/onnx-check-*/*.xml
+            evidence/in-progress/onnx-fp16/onnx-check-*/compatibility.json
+
+  current-source:
+    name: Pinned current source, reference suite and lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      ONNX_ML: '1'
+      ONNX_BUILD_TESTS: '1'
+      CMAKE_ARGS: '-DONNX_WERROR=ON -DONNX_HARDENING=ON'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: packet
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: onnx/onnx
+          ref: 27d7d6890cb8bfa7ed5cda2f2656f82b6af0736a
+          path: upstream
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Build exact ONNX revision and install test tools
+        working-directory: upstream
+        run: |
+          mkdir -p ../artifacts
+          git branch -f main HEAD
+          python -m pip install -e '.[reference]' -v 2>&1 | tee ../artifacts/build.log
+          python -m pip install -r requirements-release_test.txt 'lintrunner>=0.13.1' 'lintrunner-adapters>=0.14.1' 2>&1 | tee ../artifacts/dependencies.log
+      - name: Reproduce, apply fix, run reference suite and lint
+        run: python packet/evidence/in-progress/onnx-fp16/cloud_validate.py --upstream upstream --artifacts artifacts
+      - name: Preserve current-source results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-source-evidence
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/

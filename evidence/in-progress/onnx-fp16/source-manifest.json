@@ -1,0 +1,14 @@
+{
+  "investigated_date": "2026-09-10",
+  "starting_issue": "https://github.com/microsoft/onnxscript/issues/3003",
+  "upstream_change": "https://github.com/onnx/onnx/pull/8366",
+  "merged_at": "2026-09-01T17:11:19Z",
+  "commit": "aa94a7bd76d4b19a6021ab938369b68babe7ce61",
+  "current_source_blob": "3e7793a16889b02e47076b84383b760fcb73476d",
+  "baseline_ref": "v1.22.0",
+  "baseline_source_blob": "b73cff23e0cb8544e27bedea0ca479ef77885dd3",
+  "test_source_blob": "3648d0597aa819e1069be4445afdd79818182c98",
+  "scope": "Independent verification in progress; cloud runtime and current-source validation pending actual workflow receipts.",
+  "local_revision": "2: float16-only promotion; bounded cloud validation",
+  "exact_checkout_commit": "27d7d6890cb8bfa7ed5cda2f2656f82b6af0736a"
+}
