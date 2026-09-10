@@ -1,0 +1,117 @@
+{
+  "verified_date": "2026-09-10",
+  "result": "Scoped verification and changed-file lint passed",
+  "repo": "timothyanderson096-ocdealcheck/gdn-engineering-benchmarks",
+  "reviewed_code_commit": "f7d4c2de203dbdd78ba22ec828646e6a10fa803b",
+  "reviewed_branch": "agent/onnx-fp16-reviewed-20260910",
+  "upstream_commit": "27d7d6890cb8bfa7ed5cda2f2656f82b6af0736a",
+  "final_patch_sha256": "29058184b46039427cad65283bfe49ca819104b677abd33a2930a76b32d01548",
+  "source_tests": {
+    "run_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34435471817",
+    "stages": {
+      "patched_regression": {
+        "all_cases_match_regression_name": true,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 0,
+        "failures": 0,
+        "passed": 24,
+        "returncode": 0,
+        "skipped": 0,
+        "tests": 24
+      },
+      "reference_evaluator_file": {
+        "all_cases_match_regression_name": false,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 0,
+        "failures": 0,
+        "passed": 480,
+        "returncode": 0,
+        "skipped": 8,
+        "tests": 488
+      },
+      "unpatched_regression": {
+        "all_cases_match_regression_name": true,
+        "errors": 0,
+        "expected_outcome_confirmed": true,
+        "failure_messages_containing_inf": 24,
+        "failures": 24,
+        "passed": 0,
+        "returncode": 1,
+        "skipped": 0,
+        "tests": 24
+      }
+    },
+    "overall_run_status": "failure",
+    "reason": "Only the changed-file lint stage failed: Ruff requested line wrapping of one return statement."
+  },
+  "released_runtime": {
+    "run_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34435471817",
+    "stages": {
+      "inspected_upstream": {
+        "errors": 0,
+        "exit_code": 1,
+        "expected_outcome_confirmed": true,
+        "failures": 24,
+        "source_sha256": "5d8564b3779a11faa2162184cede353cb531dc3a113c7b62eeac2a400409b949",
+        "tests": 24
+      },
+      "packaged_baseline": {
+        "errors": 0,
+        "exit_code": 0,
+        "expected_outcome_confirmed": true,
+        "failures": 0,
+        "tests": 24
+      },
+      "proposed_patch": {
+        "errors": 0,
+        "exit_code": 0,
+        "expected_outcome_confirmed": true,
+        "failures": 0,
+        "source_sha256": "a21eed2d650fe8136f1421901005ec93103184eef09f745fe7d94d60ba4a0da3",
+        "tests": 24
+      }
+    },
+    "compatibility_passes": 16,
+    "helper_counts": {
+      "baseline_passes": 30,
+      "broad_passes": 144,
+      "fixed_passes": 30,
+      "original_failures": 30
+    }
+  },
+  "final_lint": {
+    "run_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34436339431",
+    "job_id": 102742069834,
+    "conclusion": "success",
+    "message": "ok No lint issues.",
+    "ast_equivalent": true,
+    "files": {
+      "onnx/reference/ops/op_conv.py": {
+        "expected_previously_tested_sha256": "e74bcba53d3c74884a0fdcc4890ef28c60cb2d5ccc6d2ed1725a51214f64f866",
+        "previously_patched_sha256": "e74bcba53d3c74884a0fdcc4890ef28c60cb2d5ccc6d2ed1725a51214f64f866",
+        "formatted_sha256": "800fd58f1e98be3e21303d66e73ba5eab66e3e86c849001ac8b7df03d9215642",
+        "previous_ast_sha256": "197228a764b91205aea94f255e29746dcc659bf9434e816b1a75c203bd1d8af7",
+        "formatted_ast_sha256": "197228a764b91205aea94f255e29746dcc659bf9434e816b1a75c203bd1d8af7",
+        "ast_equivalent": true
+      },
+      "tests/python/reference_evaluator_test.py": {
+        "expected_previously_tested_sha256": "083f12766d5bbae2138ce7adc21b25de5803eb910f027da5712b2b1514c682ef",
+        "previously_patched_sha256": "083f12766d5bbae2138ce7adc21b25de5803eb910f027da5712b2b1514c682ef",
+        "formatted_sha256": "083f12766d5bbae2138ce7adc21b25de5803eb910f027da5712b2b1514c682ef",
+        "previous_ast_sha256": "c5b59a9665d24190dc2d3faff9060a23810151a67b318e71db52a409e4ebc9bc",
+        "formatted_ast_sha256": "c5b59a9665d24190dc2d3faff9060a23810151a67b318e71db52a409e4ebc9bc",
+        "ast_equivalent": true
+      }
+    }
+  },
+  "validation_limits": [
+    "480 passed and 8 skipped refer to the reference_evaluator_test.py file, including the 24 new tests; do not add these counts together.",
+    "The final change was formatting only, verified by exact prior source hashes and identical ASTs; the native build and tests were not repeated after formatting.",
+    "The entire Python suite, cross-platform CI matrix, ONNX Runtime providers and hardware were not validated.",
+    "No upstream issue or pull request has been submitted; this is independent open-source work, not a client endorsement."
+  ],
+  "patch_path": "evidence/in-progress/onnx-fp16/onnx-fp16-conv-bias.patch",
+  "review_draft_path": "evidence/in-progress/onnx-fp16/UPSTREAM-REVIEW.md"
+}
