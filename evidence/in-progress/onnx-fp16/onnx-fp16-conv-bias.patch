@@ -29,7 +29,7 @@
  class Conv(OpRun):
 --- a/tests/python/reference_evaluator_test.py
 +++ b/tests/python/reference_evaluator_test.py
-@@ -1650,6 +1650,38 @@
+@@ -1650,6 +1650,36 @@
      def test_create_adam(self):
          inst = Adam.create(alpha=0.5)
          assert inst.alpha == 0.5
@@ -58,9 +58,7 @@
 +            [make_tensor_value_info("Y", TensorProto.FLOAT16, output_shape)],
 +        )
 +        model = make_model_gen_version(graph, opset_imports=[make_opsetid("", 22)])
-+        actual = ReferenceEvaluator(model, optimized=False).run(
-+            None, {"X": x, "W": w, "B": bias}
-+        )[0]
++        actual = ReferenceEvaluator(model).run(None, {"X": x, "W": w, "B": bias})[0]
 +        # 100 * 400 + 100 * 400 - 30000 is finite after rounding to float16.
 +        expected = np.full(output_shape, 50000, dtype=np.float16)
 +        assert actual.dtype == np.float16
