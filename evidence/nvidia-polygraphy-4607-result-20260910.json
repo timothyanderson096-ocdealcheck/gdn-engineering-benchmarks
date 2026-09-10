@@ -1,0 +1,298 @@
+{
+  "cases": [
+    {
+      "case": "single_input_control",
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/polygraphy",
+        "debug",
+        "reduce",
+        "original.onnx",
+        "--mode",
+        "linear",
+        "--output",
+        "reduced.onnx",
+        "--load-inputs",
+        "inputs.json",
+        "--show-output",
+        "--fail-code",
+        "1",
+        "--no-reduce-outputs",
+        "--check",
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "/home/runner/work/gdn-engineering-benchmarks/gdn-engineering-benchmarks/packet/evidence/in-progress/nvidia-polygraphy-4607/reproduce.py",
+        "--check-model",
+        "polygraphy_debug.onnx",
+        "--references",
+        "reference.json"
+      ],
+      "exit_code": 0,
+      "nodes": [
+        "left",
+        "right",
+        "left_tail",
+        "sum"
+      ],
+      "original": {
+        "matches": [
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "matches": [
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "two_inputs_linear",
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/polygraphy",
+        "debug",
+        "reduce",
+        "original.onnx",
+        "--mode",
+        "linear",
+        "--output",
+        "reduced.onnx",
+        "--load-inputs",
+        "inputs.json",
+        "--show-output",
+        "--fail-code",
+        "1",
+        "--no-reduce-outputs",
+        "--check",
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "/home/runner/work/gdn-engineering-benchmarks/gdn-engineering-benchmarks/packet/evidence/in-progress/nvidia-polygraphy-4607/reproduce.py",
+        "--check-model",
+        "polygraphy_debug.onnx",
+        "--references",
+        "reference.json"
+      ],
+      "exit_code": 0,
+      "nodes": [
+        "left_tail",
+        "sum"
+      ],
+      "original": {
+        "matches": [
+          true,
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              4
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "matches": [
+          true,
+          false
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              3
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "two_inputs_bisect",
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/polygraphy",
+        "debug",
+        "reduce",
+        "original.onnx",
+        "--mode",
+        "bisect",
+        "--output",
+        "reduced.onnx",
+        "--load-inputs",
+        "inputs.json",
+        "--show-output",
+        "--fail-code",
+        "1",
+        "--no-reduce-outputs",
+        "--check",
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "/home/runner/work/gdn-engineering-benchmarks/gdn-engineering-benchmarks/packet/evidence/in-progress/nvidia-polygraphy-4607/reproduce.py",
+        "--check-model",
+        "polygraphy_debug.onnx",
+        "--references",
+        "reference.json"
+      ],
+      "exit_code": 0,
+      "nodes": [
+        "left_tail",
+        "sum"
+      ],
+      "original": {
+        "matches": [
+          true,
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              4
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "matches": [
+          true,
+          false
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              3
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "two_inputs_no_input_reduction",
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/polygraphy",
+        "debug",
+        "reduce",
+        "original.onnx",
+        "--mode",
+        "linear",
+        "--output",
+        "reduced.onnx",
+        "--load-inputs",
+        "inputs.json",
+        "--show-output",
+        "--fail-code",
+        "1",
+        "--no-reduce-inputs",
+        "--check",
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "/home/runner/work/gdn-engineering-benchmarks/gdn-engineering-benchmarks/packet/evidence/in-progress/nvidia-polygraphy-4607/reproduce.py",
+        "--check-model",
+        "polygraphy_debug.onnx",
+        "--references",
+        "reference.json"
+      ],
+      "exit_code": 0,
+      "nodes": [
+        "left",
+        "right",
+        "left_tail",
+        "sum"
+      ],
+      "original": {
+        "matches": [
+          true,
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              4
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "matches": [
+          true,
+          true
+        ],
+        "outputs": [
+          {
+            "y": [
+              2
+            ]
+          },
+          {
+            "y": [
+              4
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "packages": {
+    "numpy": "2.3.5",
+    "onnx": "1.22.0",
+    "onnx-graphsurgeon": "0.6.2",
+    "onnxruntime": "1.23.2",
+    "polygraphy": "0.49.27"
+  },
+  "python": "3.12.14",
+  "reproduced": true,
+  "scope": "remaining branch-freezing limitation; to-input aliasing excluded",
+  "upstream_sha": "c93b7d4893184af4882f9f1862e13a5c64b8677d",
+  "provenance": {
+    "observed_date": "2026-09-10",
+    "upstream_repository": "NVIDIA/TensorRT",
+    "issue_url": "https://github.com/NVIDIA/TensorRT/issues/4607",
+    "competing_partial_fix": "https://github.com/NVIDIA/TensorRT/pull/4779",
+    "packet_commit": "26339c1eeb291e73009ee4d774dc9bbb78923e88",
+    "workflow_run_id": 34437648737,
+    "workflow_job_id": 102745961472,
+    "workflow_url": "https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/34437648737",
+    "workflow_job_conclusion": "success",
+    "earlier_environment_failures": [
+      {
+        "run_id": 34437485639,
+        "reason": "GraphSurgeon editable build isolation could not import installed NumPy; test not executed."
+      },
+      {
+        "run_id": 34437553537,
+        "reason": "Harness invoked python -m polygraphy, which has no __main__; reducer not executed."
+      }
+    ],
+    "upstream_fix_implemented": false,
+    "upstream_submission": null
+  }
+}
