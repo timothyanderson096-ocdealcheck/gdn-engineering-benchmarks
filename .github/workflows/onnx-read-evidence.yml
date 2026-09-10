@@ -1,0 +1,47 @@
+name: Read ONNX validation evidence
+
+on:
+  push:
+    branches: [agent/onnx-fp16-validation-20260910]
+    paths: ['.github/workflows/onnx-read-evidence.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  read-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Download the completed validation records
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 34435471817
+          github-token: ${{ github.token }}
+          path: records
+      - name: Print reports and bounded diagnostic tails
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('records')
+          reports = [*root.rglob('report.json'), *root.rglob('verification-results.json')]
+          for path in reports:
+              data = json.loads(path.read_text())
+              if 'helper_regressions' in data:
+                  data['helper_regressions'] = {
+                      key: value for key, value in data['helper_regressions'].items()
+                      if not isinstance(value, list)
+                  }
+              print('REPORT:', path)
+              print(json.dumps(data, indent=2))
+          for name in ('combined.log', 'build.log', 'dependencies.log'):
+              for path in root.rglob(name):
+                  print('LOG TAIL:', path)
+                  print('\n'.join(path.read_text(errors='replace').splitlines()[-100:]))
+          if not reports:
+              raise SystemExit('No validation report was saved; inspect build logs above.')
+          PY
