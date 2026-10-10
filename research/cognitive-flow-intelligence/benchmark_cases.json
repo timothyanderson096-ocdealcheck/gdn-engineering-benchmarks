@@ -1,0 +1,122 @@
+[
+  {
+    "id": "EXP-01",
+    "task_type": "Exploratory incentive hypothesis",
+    "history": [
+      {
+        "role": "user",
+        "text": "I was speaking to someone at a small shop about business payments. We talked about card charges and tax-payment options."
+      },
+      {
+        "role": "assistant",
+        "text": "A business card can have an interest-free period, depending on terms."
+      },
+      {
+        "role": "user",
+        "text": "But my bigger thought is whether rules that remove one option change how owners behave."
+      }
+    ],
+    "last_user_message": "I think there could be an incentive effect here. I wasn't trying to recommend any particular card to them."
+  },
+  {
+    "id": "COR-02",
+    "task_type": "Explicit correction of overly literal framing",
+    "history": [
+      {
+        "role": "user",
+        "text": "I was telling you a story about someone I met, and why a policy might change people's behaviour."
+      },
+      {
+        "role": "assistant",
+        "text": "Here are the exact credit-card terms you should explain to that person."
+      }
+    ],
+    "last_user_message": "No, you're missing the point. I don't know their finances. I'm looking at patterns in human decisions."
+  },
+  {
+    "id": "ASSOC-03",
+    "task_type": "Nonlinear analogy across communication technologies",
+    "history": [
+      {
+        "role": "user",
+        "text": "I was thinking about language differences between AI systems."
+      },
+      {
+        "role": "assistant",
+        "text": "Translation can change how meaning is expressed."
+      },
+      {
+        "role": "user",
+        "text": "At school I learned cursive, then printing, then typing. Now I dictate text on my phone."
+      }
+    ],
+    "last_user_message": "A sore hand during a written assessment made me realise how much the way we communicate has changed."
+  },
+  {
+    "id": "FLOW-04",
+    "task_type": "Nonlinear problem-solving",
+    "history": [
+      {
+        "role": "user",
+        "text": "We need to make an equipment repair workflow more efficient."
+      },
+      {
+        "role": "assistant",
+        "text": "We can list each step in chronological order."
+      },
+      {
+        "role": "user",
+        "text": "I don't solve problems chronologically. I often start with the failure, jump to inventory, then return to the root cause."
+      }
+    ],
+    "last_user_message": "The parts cupboard might actually be the key to solving the breakdown problem."
+  },
+  {
+    "id": "FACT-05",
+    "task_type": "Literal factual request",
+    "history": [
+      {
+        "role": "user",
+        "text": "We have been discussing an engineering pilot."
+      }
+    ],
+    "last_user_message": "What is the difference between a median and a mean? Just give me the practical distinction."
+  },
+  {
+    "id": "VERIFY-06",
+    "task_type": "Unverified public claim requiring evidence",
+    "history": [
+      {
+        "role": "user",
+        "text": "I think a change in a public payment policy might have an unintended consequence."
+      }
+    ],
+    "last_user_message": "Can you verify whether the public agency actually gains revenue from overdue payments, rather than assume intent?"
+  },
+  {
+    "id": "ACTION-07",
+    "task_type": "Execution request with scope control",
+    "history": [
+      {
+        "role": "user",
+        "text": "We have a draft paper, but it is not final yet."
+      },
+      {
+        "role": "assistant",
+        "text": "It can be published when you choose a final name."
+      }
+    ],
+    "last_user_message": "Please prepare a local review copy. Don't publish anything yet."
+  },
+  {
+    "id": "UNCERT-08",
+    "task_type": "Tentative idea without premature endorsement",
+    "history": [
+      {
+        "role": "user",
+        "text": "I've noticed a pattern, but it might just be coincidence."
+      }
+    ],
+    "last_user_message": "Maybe a different AI interface would help people think more clearly. How would we test that fairly without claiming we proved it?"
+  }
+]
