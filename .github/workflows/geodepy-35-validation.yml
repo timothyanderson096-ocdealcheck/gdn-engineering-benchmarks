@@ -1,0 +1,48 @@
+name: GeodePy 35 isolated baseline
+
+on:
+  push:
+    branches:
+      - test/geodepy-35-longitude-2026-10-21
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: GeoscienceAustralia/GeodePy
+          ref: 609916c7d1dc90baf1ce8f5d30dfccd543e6f1ea
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install numpy scipy pytest pytest-cov geographiclib==2.1
+      - name: Run unmodified full test suite
+        working-directory: source
+        run: |
+          mkdir -p ../results
+          python -m pip freeze > ../results/environment.txt
+          git rev-parse HEAD > ../results/source_commit.txt
+          set -o pipefail
+          python -m pytest -vv --junitxml=../results/baseline.xml geodepy/tests/ 2>&1 | tee ../results/baseline.log
+      - name: Preserve source and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geodepy-35-pinned-source-and-baseline
+          retention-days: 14
+          path: |
+            source/geodepy
+            source/LICENSE
+            source/requirements.txt
+            source/setup.py
+            source/pyproject.toml
+            results
