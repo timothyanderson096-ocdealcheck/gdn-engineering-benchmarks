@@ -1,4 +1,4 @@
-name: GeodePy 35 isolated baseline
+name: GeodePy 35 before-and-after validation
 
 on:
   push:
@@ -10,10 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  baseline:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: validation
+          persist-credentials: false
       - uses: actions/checkout@v4
         with:
           repository: GeoscienceAustralia/GeodePy
@@ -24,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install test dependencies
-        run: python -m pip install numpy scipy pytest pytest-cov geographiclib==2.1
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 pytest==9.0.2 pytest-cov geographiclib==2.1
       - name: Run unmodified full test suite
         working-directory: source
         run: |
@@ -32,17 +36,37 @@ jobs:
           python -m pip freeze > ../results/environment.txt
           git rev-parse HEAD > ../results/source_commit.txt
           set -o pipefail
-          python -m pytest -vv --junitxml=../results/baseline.xml geodepy/tests/ 2>&1 | tee ../results/baseline.log
-      - name: Preserve source and test evidence
+          python -m pytest -q --junitxml=../results/baseline.xml geodepy/tests/ 2>&1 | tee ../results/baseline.log
+      - name: Prove new regressions fail before patch
+        working-directory: source
+        run: |
+          cp ../validation/.github/geodepy35_tests.py geodepy/tests/test_issue35.py
+          set +e
+          python -m pytest -q --junitxml=../results/before.xml geodepy/tests/test_issue35.py > ../results/before.log 2>&1
+          status=$?
+          set -e
+          cat ../results/before.log
+          test "$status" -eq 1
+          python -c "import xml.etree.ElementTree as E; s=E.parse('../results/before.xml').getroot().find('testsuite'); assert int(s.get('tests'))==48 and int(s.get('failures'))==34 and int(s.get('errors'))==0 and int(s.get('skipped'))==0, s.attrib"
+      - name: Apply narrow candidate and run complete suite
+        working-directory: source
+        run: |
+          git apply --check ../validation/.github/geodepy35.patch
+          git apply ../validation/.github/geodepy35.patch
+          git diff -- geodepy/geodesy.py > ../results/tested.patch
+          set -o pipefail
+          python -m pytest -q --junitxml=../results/after.xml geodepy/tests/ 2>&1 | tee ../results/after.log
+          python -c "import xml.etree.ElementTree as E; s=E.parse('../results/after.xml').getroot().find('testsuite'); assert int(s.get('tests'))==122 and int(s.get('failures'))==0 and int(s.get('errors'))==0 and int(s.get('skipped'))==0, s.attrib"
+      - name: Preserve candidate and test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: geodepy-35-pinned-source-and-baseline
+          name: geodepy-35-before-after-evidence
           retention-days: 14
           path: |
             source/geodepy
             source/LICENSE
             source/requirements.txt
-            source/setup.py
-            source/pyproject.toml
+            validation/.github/geodepy35.patch
+            validation/.github/geodepy35_tests.py
             results
