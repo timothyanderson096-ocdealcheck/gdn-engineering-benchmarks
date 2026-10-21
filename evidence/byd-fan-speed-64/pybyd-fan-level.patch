@@ -1,0 +1,291 @@
+From a3cc941e4d5f84ca272fc36cbba0fd50395965b8 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Wed, 21 Oct 2026 12:57:19 +0900
+Subject: [PATCH] Add guarded HVAC fan-level commands
+
+Preserve known driver/passenger targets, circulation and A/C mode under the per-vehicle command lock. Keep fan readback authoritative. Complete existing start projections for values its unchanged wire payload already sets, preventing a following fan command from restoring stale settings.
+
+Local: 333 tests pass on Python 3.12; ruff, black and mypy pass. Related to #64. No vehicle validation; raw levels and AUTO behaviour remain owner gates.
+---
+ src/pybyd/_capabilities/hvac.py |  46 +++++++-
+ tests/test_hvac_fan_level.py    | 197 ++++++++++++++++++++++++++++++++
+ 2 files changed, 241 insertions(+), 2 deletions(-)
+ create mode 100644 tests/test_hvac_fan_level.py
+
+diff --git a/src/pybyd/_capabilities/hvac.py b/src/pybyd/_capabilities/hvac.py
+index 2e05299..d5c6d01 100644
+--- a/src/pybyd/_capabilities/hvac.py
++++ b/src/pybyd/_capabilities/hvac.py
+@@ -8,8 +8,8 @@ from pybyd._constants import DEFAULT_TEMP_OFFSET_C, minutes_to_time_span
+ from pybyd._state_engine import ProjectionSpec
+ from pybyd.exceptions import BydEndpointNotSupportedError
+ from pybyd.models.control import ClimateScheduleParams, ClimateStartParams
+-from pybyd.models.hvac import HvacOverallStatus
+-from pybyd.models.realtime import SeatHeatVentState, StearingWheelHeat
++from pybyd.models.hvac import AirConditioningMode, HvacOverallStatus
++from pybyd.models.realtime import AirCirculationMode, SeatHeatVentState, StearingWheelHeat
+ 
+ if TYPE_CHECKING:
+     from collections.abc import Awaitable, Callable
+@@ -80,6 +80,9 @@ class HvacCapability:
+         specs = [
+             ProjectionSpec("hvac", "status", HvacOverallStatus.ON),
+             ProjectionSpec("hvac", "main_setting_temp_new", temperature),
++            ProjectionSpec("hvac", "copilot_setting_temp_new", temperature),
++            ProjectionSpec("hvac", "cycle_choice", AirCirculationMode.INTERNAL),
++            ProjectionSpec("hvac", "air_conditioning_mode", AirConditioningMode.AUTO),
+         ]
+ 
+         async def _cmd() -> Any:
+@@ -87,6 +90,45 @@ class HvacCapability:
+ 
+         await self._execute(_cmd, specs)
+ 
++    async def set_fan_level(self, wind_level: int, duration: int = 20) -> None:
++        """Set a raw fan level (1-7) on an active climate session.
++
++        Reissues ``OPENAIR`` for the requested duration in minutes, preserving
++        the reported driver/passenger temperatures, circulation and A/C mode.
++        Missing settings are rejected instead of being replaced by defaults.
++        No fan-state projection is made: command levels, AUTO-mode behaviour
++        and their relationship to reported positions need vehicle validation.
++        """
++        self._ensure_available()
++        if isinstance(wind_level, bool) or not isinstance(wind_level, int) or not 1 <= wind_level <= 7:
++            raise ValueError("Fan level must be an integer from 1 to 7")
++        time_span = minutes_to_time_span(duration)
++
++        async def _cmd() -> Any:
++            # The executor holds the per-vehicle lock here. Read current state
++            # after any earlier queued command, not before waiting for it.
++            hvac = self._get_state().hvac if self._get_state is not None else None
++            if hvac is None or not hvac.is_ac_on:
++                raise ValueError("Turn climate control on before changing fan speed")
++            if hvac.main_setting_temp_new is None or hvac.copilot_setting_temp_new is None:
++                raise ValueError("Wait for both current target temperatures before changing fan speed")
++            if hvac.cycle_choice not in (AirCirculationMode.EXTERNAL, AirCirculationMode.INTERNAL):
++                raise ValueError("Wait for the current recirculation setting before changing fan speed")
++            if hvac.air_conditioning_mode not in (AirConditioningMode.AUTO, AirConditioningMode.MANUAL):
++                raise ValueError("Wait for the current A/C mode before changing fan speed")
++            params = ClimateStartParams(
++                temperature=hvac.main_setting_temp_new,
++                copilot_temperature=hvac.copilot_setting_temp_new,
++                temp_offset=hvac.temp_offset,
++                cycle_mode=int(hvac.cycle_choice),
++                air_conditioning_mode=int(hvac.air_conditioning_mode),
++                time_span=time_span,
++                wind_level=wind_level,
++            )
++            return await self._start_fn(self._vin, params=params)
++
++        await self._execute(_cmd, [])
++
+     async def stop(self) -> None:
+         """Stop climate control (including seat/steering heat)."""
+         self._ensure_available()
+diff --git a/tests/test_hvac_fan_level.py b/tests/test_hvac_fan_level.py
+new file mode 100644
+index 0000000..81e6d43
+--- /dev/null
++++ b/tests/test_hvac_fan_level.py
+@@ -0,0 +1,197 @@
++"""Fan commands preserve known HVAC settings without predicting state (#64)."""
++
++from __future__ import annotations
++
++import asyncio
++from collections.abc import Awaitable, Callable
++from dataclasses import replace
++from typing import Any
++from unittest.mock import Mock
++
++import pytest
++
++from pybyd._capabilities.hvac import HvacCapability
++from pybyd._state_engine import ProjectionSpec
++from pybyd.car import BydCar
++from pybyd.client import BydClient
++from pybyd.exceptions import BydEndpointNotSupportedError, BydRemoteControlError
++from pybyd.models.hvac import HvacStatus
++from pybyd.models.latest_config import VehicleCapabilities
++from pybyd.models.vehicle import Vehicle
++
++
++def status(**overrides: Any) -> HvacStatus:
++    return HvacStatus.model_validate(
++        {
++            "status": 1,
++            "main_setting_temp_new": 23,
++            "copilot_setting_temp_new": 25,
++            "cycle_choice": 1,
++            "air_conditioning_mode": 2,
++            "wind_position": 2,
++            "vde_temp_range_min": 17,
++            "vde_temp_range_max": 33,
++            **overrides,
++        }
++    )
++
++
++@pytest.mark.parametrize("level", range(1, 8))
++async def test_fan_level_reaches_serialized_command(level: int) -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    client.get_hvac_status.return_value = status()
++    await car.update_hvac()
++    before = car.state.hvac
++
++    await car.hvac.set_fan_level(level, duration=15)
++
++    assert client.start_climate.call_args.args == ("TEST_VIN",)
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert payload["windLevel"] == level
++    assert payload["mainSettingTemp"] == 7
++    assert payload["copilotSettingTemp"] == 9
++    assert payload["cycleMode"] == 1
++    assert payload["airConditioningMode"] == 2
++    assert payload["timeSpan"] == 2
++    assert car.state.hvac == before
++    assert car._engine.active_projections == []
++
++
++async def test_existing_start_payload_is_unchanged() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    await car.hvac.start(21, 20)
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert payload == {
++        "cycleMode": 2,
++        "timeSpan": 3,
++        "remoteMode": 4,
++        "airAccuracy": 1,
++        "airConditioningMode": 1,
++        "mainSettingTemp": 7,
++        "copilotSettingTemp": 7,
++        "airSet": None,
++    }
++
++
++@pytest.mark.parametrize("level", [-1, 0, 8, True, 2.5, "3"])
++async def test_invalid_level_is_rejected_before_command(level) -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    with pytest.raises(ValueError, match="integer from 1 to 7"):
++        await car.hvac.set_fan_level(level)
++    client.start_climate.assert_not_called()
++    assert car._engine.active_projections == []
++
++
++@pytest.mark.parametrize(
++    "changes",
++    [
++        {"status": 2},
++        {"status": None},
++        {"main_setting_temp_new": None},
++        {"main_setting_temp_new": 0},
++        {"copilot_setting_temp_new": None},
++        {"copilot_setting_temp_new": 0},
++        {"cycle_choice": None},
++        {"cycle_choice": 0},
++        {"air_conditioning_mode": None},
++        {"air_conditioning_mode": 0},
++    ],
++)
++async def test_missing_or_invalid_settings_are_not_guessed(changes) -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    client.get_hvac_status.return_value = status(**changes)
++    await car.update_hvac()
++    with pytest.raises(ValueError):
++        await car.hvac.set_fan_level(3)
++    client.start_climate.assert_not_called()
++    assert car._engine.active_projections == []
++
++
++async def test_unavailable_capability_sends_nothing() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"), capabilities=VehicleCapabilities(climate=False))
++    with pytest.raises(BydEndpointNotSupportedError):
++        await car.hvac.set_fan_level(3)
++    client.start_climate.assert_not_called()
++
++
++async def test_fan_command_failure_does_not_change_state() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    client.get_hvac_status.return_value = status()
++    await car.update_hvac()
++    before = car.state.hvac
++    client.start_climate.side_effect = BydRemoteControlError("rejected", code="2")
++    with pytest.raises(BydRemoteControlError):
++        await car.hvac.set_fan_level(3)
++    assert car._engine.active_projections == []
++    assert car.state.hvac == before
++
++
++async def test_preserved_settings_are_read_after_waiting_for_executor_lock() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    snapshot = replace(car.state, hvac=status())
++    lock = asyncio.Lock()
++    entered = asyncio.Event()
++
++    async def execute(cmd: Callable[[], Awaitable[Any]], specs: list[ProjectionSpec]) -> None:
++        entered.set()
++        async with lock:
++            await cmd()
++
++    cap = HvacCapability(
++        start_fn=client.start_climate,
++        stop_fn=client.stop_climate,
++        schedule_fn=client.schedule_climate,
++        vin="TEST_VIN",
++        execute_command=execute,
++        get_state=lambda: snapshot,
++    )
++    async with lock:
++        task = asyncio.create_task(cap.set_fan_level(3))
++        await asyncio.wait_for(entered.wait(), timeout=1)
++        snapshot = replace(
++            snapshot,
++            hvac=status(
++                main_setting_temp_new=27,
++                copilot_setting_temp_new=28,
++                cycle_choice=2,
++                air_conditioning_mode=1,
++            ),
++        )
++    await asyncio.wait_for(task, timeout=1)
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert payload["mainSettingTemp"] == 11
++    assert payload["copilotSettingTemp"] == 12
++    assert payload["cycleMode"] == 2
++    assert payload["airConditioningMode"] == 1
++
++
++async def test_fan_change_preserves_all_settings_of_preceding_start_command() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    client.get_hvac_status.return_value = status()
++    await car.update_hvac()
++    await car.hvac.start(temperature=27, duration=15)
++    first = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    await car.hvac.set_fan_level(3, duration=15)
++    second = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert second == {**first, "windLevel": 3}
++
++
++async def test_failed_start_rolls_back_every_preserved_setting() -> None:
++    client = Mock(spec=BydClient)
++    car = BydCar(client, "TEST_VIN", Vehicle(vin="TEST_VIN"))
++    client.get_hvac_status.return_value = status()
++    await car.update_hvac()
++    before = car.state.hvac
++    client.start_climate.side_effect = BydRemoteControlError("rejected", code="2")
++    with pytest.raises(BydRemoteControlError):
++        await car.hvac.start(temperature=27)
++    assert car._engine.active_projections == []
++    assert car.state.hvac == before
+-- 
+2.51.1
+

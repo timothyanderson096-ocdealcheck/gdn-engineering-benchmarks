@@ -1,0 +1,345 @@
+From 938974b21e0cbe9fb6aafe0a4c3deb6a633b783a Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Wed, 21 Oct 2026 12:57:19 +0900
+Subject: [PATCH] Expose guarded climate fan modes when supported by pyBYD
+
+Read fan mode from the existing snapshot and delegate fan changes to the new library method. Hide the control on older library versions. Retain PIN gating, command failure handling and post-action refresh.
+
+Local: 32 integration tests pass on Home Assistant 2026.10.2/Python 3.14, including a real HA service dispatch to mocked BYD client. Ruff, black and CI-style mypy pass. Related to jkaberg/pyBYD#64; owner vehicle validation and library release remain pending.
+---
+ custom_components/byd_vehicle/climate.py |  39 ++++
+ tests/test_climate_fan_speed.py          | 240 +++++++++++++++++++++++
+ 2 files changed, 279 insertions(+)
+ create mode 100644 tests/test_climate_fan_speed.py
+
+diff --git a/custom_components/byd_vehicle/climate.py b/custom_components/byd_vehicle/climate.py
+index a377651..70f33e0 100644
+--- a/custom_components/byd_vehicle/climate.py
++++ b/custom_components/byd_vehicle/climate.py
+@@ -11,6 +11,7 @@ from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+ from homeassistant.core import HomeAssistant
+ from homeassistant.exceptions import HomeAssistantError
+ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
++from pybyd.models.hvac import HvacWindPosition
+ from pybyd.models.vehicle import Vehicle
+ 
+ from .const import (
+@@ -60,6 +61,7 @@ class BydClimate(BydActionEntity, ClimateEntity):
+     _PRESET_MAX_HEAT = "max_heat"
+     _PRESET_MAX_COOL = "max_cool"
+     _DEFAULT_TEMP_C = 21.0
++    _FAN_MODES = [str(level) for level in HvacWindPosition if level.value > 0]
+ 
+     _attr_has_entity_name = True
+     _attr_translation_key = "climate"
+@@ -71,6 +73,7 @@ class BydClimate(BydActionEntity, ClimateEntity):
+         | ClimateEntityFeature.TARGET_TEMPERATURE
+         | ClimateEntityFeature.PRESET_MODE
+     )
++    _attr_fan_modes = _FAN_MODES
+     _attr_target_temperature_step = 1
+     _attr_preset_modes = [_PRESET_MAX_HEAT, _PRESET_MAX_COOL]
+ 
+@@ -131,6 +134,15 @@ class BydClimate(BydActionEntity, ClimateEntity):
+     # State properties — read from VehicleSnapshot
+     # ------------------------------------------------------------------
+ 
++    @property
++    def supported_features(self) -> ClimateEntityFeature:
++        """Expose fan control when the installed pyBYD supports it."""
++        features = self._attr_supported_features
++        car = self.coordinator.car
++        if car is not None and callable(getattr(car.hvac, "set_fan_level", None)):
++            features |= ClimateEntityFeature.FAN_MODE
++        return features
++
+     @property
+     def hvac_mode(self) -> HVACMode:
+         """Return the current HVAC mode."""
+@@ -178,10 +190,37 @@ class BydClimate(BydActionEntity, ClimateEntity):
+                 return self._preset_from_temp(temp_c)
+         return None
+ 
++    @property
++    def fan_mode(self) -> str | None:
++        """Return the reported fan level, without predicting command success."""
++        hvac = self._get_hvac_status()
++        if hvac is None or hvac.wind_position is None:
++            return None
++        mode = str(hvac.wind_position)
++        return mode if mode in self._FAN_MODES else None
++
+     # ------------------------------------------------------------------
+     # Commands — delegate to BydCar.hvac
+     # ------------------------------------------------------------------
+ 
++    async def async_set_fan_mode(self, fan_mode: str) -> None:
++        """Change an active climate session's fan level."""
++        self._ensure_action_allowed()
++        if fan_mode not in self._FAN_MODES:
++            raise HomeAssistantError(f"Unsupported fan mode: {fan_mode}")
++        car = self.coordinator.car
++        if car is None:
++            raise HomeAssistantError("Vehicle climate control is unavailable")
++        if not self.supported_features & ClimateEntityFeature.FAN_MODE:
++            raise HomeAssistantError("Fan control requires a newer version of pyBYD")
++        await self._execute_car_command(
++            car.hvac.set_fan_level(
++                int(fan_mode),
++                duration=self._climate_duration,
++            ),
++            command="start_climate",
++        )
++
+     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+         """Set HVAC mode (on/off)."""
+         car = self.coordinator.car
+diff --git a/tests/test_climate_fan_speed.py b/tests/test_climate_fan_speed.py
+new file mode 100644
+index 0000000..416ace8
+--- /dev/null
++++ b/tests/test_climate_fan_speed.py
+@@ -0,0 +1,240 @@
++"""Fan control through real HA entities and pyBYD; no vehicle/cloud access.
++
++Requires the paired pyBYD HVAC fan-level patch, Home Assistant, pytest and
++pytest-asyncio. Only the BYD client boundary and delayed refresh are replaced.
++"""
++
++from __future__ import annotations
++
++from collections.abc import AsyncIterator
++from dataclasses import replace
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import Mock
++
++import pytest
++import pytest_asyncio
++from homeassistant import config_entries, loader
++from homeassistant.components.climate import ClimateEntityFeature
++from homeassistant.components.climate.const import DATA_COMPONENT, HVACMode
++from homeassistant.core import HomeAssistant
++from homeassistant.exceptions import HomeAssistantError
++from homeassistant.helpers import area_registry, device_registry, entity_registry, frame
++from homeassistant.setup import async_setup_component
++from pybyd import BydCar, BydClient, BydRemoteControlError
++from pybyd.models.hvac import HvacStatus
++from pybyd.models.vehicle import Vehicle
++
++from custom_components.byd_vehicle.climate import BydClimate
++from custom_components.byd_vehicle.coordinator import BydApi, BydDataUpdateCoordinator
++
++pytestmark = pytest.mark.asyncio
++
++
++@pytest_asyncio.fixture
++async def climate(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> AsyncIterator[tuple[BydClimate, Mock, Mock]]:
++    hass = HomeAssistant(str(tmp_path))
++    frame.async_setup(hass)
++    loader.async_setup(hass)
++    hass.config_entries = config_entries.ConfigEntries(hass, {})
++    device_registry.async_setup(hass)
++    await area_registry.async_load(hass)
++    await device_registry.async_load(hass)
++    await entity_registry.async_load(hass)
++    client = Mock(spec=BydClient)
++    vehicle = Vehicle(vin="TEST_VIN")
++    api = Mock(spec=BydApi)
++    api.config.control_pin = "TEST_PIN"
++    api.commands_enabled = True
++    coordinator = BydDataUpdateCoordinator(hass, api, vehicle, "TEST_VIN", 300)
++    car = BydCar(
++        client,
++        "TEST_VIN",
++        vehicle,
++        on_state_changed=lambda _vin, state: coordinator._async_handle_state_push(
++            state
++        ),
++    )
++    coordinator._car = car
++    client.get_hvac_status.return_value = HvacStatus.model_validate(
++        {
++            "status": 1,
++            "mainSettingTempNew": 23,
++            "windPosition": 2,
++            "pm": 5,
++            "copilotSettingTempNew": 25,
++            "cycleChoice": 1,
++            "airConditioningMode": 2,
++        }
++    )
++    await car.update_hvac()
++    entity = BydClimate(coordinator, "TEST_VIN", vehicle, climate_duration=15)
++    entity.hass = hass
++    monkeypatch.setattr(entity, "_schedule_post_action_refresh", Mock())
++    try:
++        yield entity, client, api
++    finally:
++        await hass.async_stop()
++
++
++async def _set_command_state(entity: BydClimate, client: Mock, payload: dict) -> None:
++    """Start a fresh real state engine, so missing values aren't last-known values."""
++    coordinator = entity.coordinator
++    car = BydCar(
++        client,
++        "TEST_VIN",
++        Vehicle(vin="TEST_VIN"),
++        on_state_changed=lambda _vin, state: coordinator._async_handle_state_push(
++            state
++        ),
++    )
++    coordinator._car = car
++    client.get_hvac_status.return_value = HvacStatus.model_validate(payload)
++    await car.update_hvac()
++
++
++async def test_fan_controls_and_reported_state(climate) -> None:
++    entity, client, _ = climate
++    assert entity.supported_features & ClimateEntityFeature.FAN_MODE
++    assert entity.fan_modes == [str(level) for level in range(1, 8)]
++    assert entity.fan_mode == "2"
++    await entity.async_set_fan_mode("4")
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert payload["windLevel"] == 4
++    assert payload["mainSettingTemp"] == 9
++    assert payload["copilotSettingTemp"] == 11
++    assert payload["cycleMode"] == 1
++    assert payload["airConditioningMode"] == 2
++    assert payload["timeSpan"] == 2
++    # Submission/acknowledgement does not prove the physical fan changed.
++    assert entity.fan_mode == "2"
++    client.get_hvac_status.return_value = HvacStatus.model_validate(
++        {"status": 1, "mainSettingTempNew": 23, "windPosition": 4, "pm": 5}
++    )
++    await entity.coordinator.car.update_hvac()
++    assert entity.fan_mode == "4"
++    entity._schedule_post_action_refresh.assert_called_once_with("start_climate")
++
++
++@pytest.mark.parametrize("mode", ["0", "8", "auto", "off", "2.0", "-1", ""])
++async def test_invalid_fan_modes_send_nothing(climate, mode: str) -> None:
++    entity, client, _ = climate
++    with pytest.raises(HomeAssistantError, match="Unsupported fan mode"):
++        await entity.async_set_fan_mode(mode)
++    client.start_climate.assert_not_called()
++
++
++@pytest.mark.parametrize("level", [None, -1, 0, 99])
++async def test_unknown_reported_level_is_not_invented(
++    climate, level: int | None
++) -> None:
++    entity, client, _ = climate
++    # Fresh model avoids the real state engine's deliberate last-known-value filter.
++    entity.coordinator.data = replace(
++        entity.coordinator.data, hvac=HvacStatus.model_validate({"windPosition": level})
++    )
++    assert entity.fan_mode is None
++    client.start_climate.assert_not_called()
++
++
++@pytest.mark.parametrize("pin, verified", [("", True), ("TEST_PIN", False)])
++async def test_pin_gate_prevents_fan_command(climate, pin: str, verified: bool) -> None:
++    entity, client, api = climate
++    api.config.control_pin = pin
++    api.commands_enabled = verified
++    with pytest.raises(HomeAssistantError, match="PIN"):
++        await entity.async_set_fan_mode("3")
++    client.start_climate.assert_not_called()
++
++
++@pytest.mark.parametrize("status", [None, 2, -1])
++async def test_fan_selection_does_not_start_an_inactive_session(
++    climate, status
++) -> None:
++    entity, client, _ = climate
++    await _set_command_state(
++        entity, client, {"status": status, "mainSettingTempNew": 23}
++    )
++    with pytest.raises(HomeAssistantError, match="Turn climate control on"):
++        await entity.async_set_fan_mode("3")
++    client.start_climate.assert_not_called()
++
++
++@pytest.mark.parametrize("temp", [None, 0, 99])
++async def test_unknown_target_does_not_send_a_guessed_temperature(
++    climate, temp
++) -> None:
++    entity, client, _ = climate
++    await _set_command_state(
++        entity,
++        client,
++        {
++            "status": 1,
++            "mainSettingTempNew": temp,
++            "copilotSettingTempNew": 25,
++            "cycleChoice": 1,
++            "airConditioningMode": 2,
++        },
++    )
++    with pytest.raises(HomeAssistantError, match="temperature"):
++        await entity.async_set_fan_mode("3")
++    client.start_climate.assert_not_called()
++
++
++async def test_rejected_fan_command_surfaces_and_keeps_reported_state(climate) -> None:
++    entity, client, _ = climate
++    client.start_climate.side_effect = BydRemoteControlError("rejected", code="2")
++    with pytest.raises(HomeAssistantError, match="rejected"):
++        await entity.async_set_fan_mode("5")
++    assert entity.fan_mode == "2"
++    assert entity.coordinator.car._engine.active_projections == []
++    entity._schedule_post_action_refresh.assert_not_called()
++
++
++async def test_temperature_and_off_commands_keep_existing_payloads(climate) -> None:
++    entity, client, _ = climate
++    await entity.async_set_temperature(temperature=24)
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert "windLevel" not in payload
++    assert payload["mainSettingTemp"] == 10
++    await entity.async_set_hvac_mode(HVACMode.OFF)
++    client.stop_climate.assert_awaited_once_with("TEST_VIN")
++
++
++async def test_older_library_keeps_existing_features_without_fan_control(
++    climate, monkeypatch
++) -> None:
++    entity, client, _ = climate
++    monkeypatch.setattr(
++        entity.coordinator.car, "hvac", SimpleNamespace(temp_range=(15.0, 31.0))
++    )
++    assert not entity.supported_features & ClimateEntityFeature.FAN_MODE
++    assert entity.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE
++    with pytest.raises(HomeAssistantError, match="newer version of pyBYD"):
++        await entity.async_set_fan_mode("3")
++    client.start_climate.assert_not_called()
++
++
++async def test_home_assistant_fan_service_reaches_serialized_command(climate) -> None:
++    entity, client, _ = climate
++    hass = entity.hass
++    assert await async_setup_component(hass, "climate", {})
++    entity.entity_id = "climate.byd_test"
++    component = hass.data[DATA_COMPONENT]
++    await component.async_add_entities([entity])
++    await hass.services.async_call(
++        "climate",
++        "set_fan_mode",
++        {"entity_id": entity.entity_id, "fan_mode": "3"},
++        blocking=True,
++    )
++    payload = client.start_climate.call_args.kwargs["params"].to_control_params_map()
++    assert payload["windLevel"] == 3
++    assert payload["mainSettingTemp"] == 9
++    assert payload["copilotSettingTemp"] == 11
++    assert payload["cycleMode"] == 1
++    assert payload["airConditioningMode"] == 2
++    state = hass.states.get(entity.entity_id)
++    assert state.attributes["fan_mode"] == "2"
+-- 
+2.51.1
+
