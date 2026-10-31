@@ -1,0 +1,11 @@
+# PX4 baseline native/SIH capability evidence
+
+Runs unmodified PX4 `789389fd46fcfb8473544d2fb3eeabd85893294c` on an ordinary Ubuntu24.04 GitHub-hosted runner. Python3.12.14 and the historical compatible generator pins are explicit; complete dependency and compiler/build-tool versions are retained. Upstream's native setup receives `--no-nuttx --no-sim-tools`: no physical-device toolchain or external simulator is installed. Standard ephemeral runner apt/Python dependencies are installed; no Docker privileges, capabilities, credentials, secrets, PX4 release or hardware commands are requested. Ordinary Actions artifacts retain validation evidence.
+
+The actual unfiltered `make tests -j4` command must exit0. Its full CTest XML must contain only passing tests and include all27 POSIX/daemon tests that failed to start in the old restricted local environment. The current source may contain a different total; it is observed, not fixed to the historical220.
+
+Then actual `make px4_sitl_default -j4` builds SITL. The normal upstream `rcS` starts `sihsim_quadx` (airframe10040) in a fresh rootfs, at real-time speed. Real daemon commands read `vehicle_status` (must be disarmed), SIH status and MAVLink status, then request clean shutdown. No code or subprocess output is mocked. This is native capability and startup proof; it is **not a REQUEST_EVENT wire-protocol, candidate, board, flight or full upstream CI pass**. Those stages remain explicitly NOT_RUN in the report.
+
+Source is fetched into a fresh checkout once and built as-is, without branch changes/worktrees or reused artifacts. All tracked bytes and the event-handler blob are checked before and after. Builds are sequential; no NuttX operation runs concurrently. This independently tests public source and does not submit PX4 changes, sign a DCO, attest human review or claim maintainer acceptance. A separate reviewed candidate/wire fixture can follow the material capability change.
+
+Prepared with AI assistance as independent agent verification evidence. Timothy Anderson — Spotted Ridge Engineering / OC Labs · GDN (Global Decision Network) · [Engineering evidence](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks).

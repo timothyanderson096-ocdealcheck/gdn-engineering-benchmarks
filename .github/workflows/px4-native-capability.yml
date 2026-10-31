@@ -1,0 +1,72 @@
+name: PX4 baseline native and SIH capability
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/px4-native-capability.yml
+      - scripts/px4-native-capability/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: px4-native-capability-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  native-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned build Python
+        id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set paths
+        run: |
+          echo "PX4_SOURCE_DIR=$RUNNER_TEMP/px4-capability-source" >> "$GITHUB_ENV"
+          echo "PX4_EVIDENCE_DIR=$RUNNER_TEMP/px4-capability-evidence" >> "$GITHUB_ENV"
+      - name: Fetch and verify exact unchanged source
+        id: source
+        run: python scripts/px4-native-capability/validate.py prepare --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR"
+      - name: Install ordinary native dependencies using upstream setup
+        id: setup
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-native-capability/validate.py setup --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR" --python '${{ steps.python.outputs.python-path }}'
+      - name: Run actual unfiltered make tests and inspect all CTest statuses
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: python scripts/px4-native-capability/validate.py native --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR"
+      - name: Build PX4 SITL and start normal disarmed SIH core
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: python scripts/px4-native-capability/validate.py sitl --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR"
+      - name: Verify baseline source remained unchanged
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-native-capability/validate.py final --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR"
+      - name: Report actual capability and unrun protocol stages
+        if: always()
+        run: python scripts/px4-native-capability/validate.py report --source "$PX4_SOURCE_DIR" --evidence "$PX4_EVIDENCE_DIR"
+      - name: Retain logs, actual XML and exact source/environment results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: px4-baseline-capability-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/px4-capability-evidence/*.json
+            ${{ runner.temp }}/px4-capability-evidence/*.log
+            ${{ runner.temp }}/px4-capability-evidence/*.xml
+            ${{ runner.temp }}/px4-capability-evidence/summary.md
