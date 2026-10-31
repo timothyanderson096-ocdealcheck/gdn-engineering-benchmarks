@@ -1,0 +1,125 @@
+{
+  "verified_at_utc": "2026-10-31T08:49:25.881Z",
+  "status": "ACCEPTED_AND_MERGED_UPSTREAM",
+  "unit_of_work": "One accepted pull request addressing four original linked issue reports; this is not four separately authored contributions.",
+  "pull_request": {
+    "number": 29522,
+    "url": "https://github.com/PX4/PX4-Autopilot/pull/29522",
+    "title": "fix(mavlink): recover parameter and mission protocol transactions",
+    "state": "closed",
+    "merged": true,
+    "merged_at": "2026-10-31T08:19:51Z",
+    "merged_by": "julianoes",
+    "base_branch": "main",
+    "head_sha": "b69e269d2e3eb2c1cc309873e690dbce0ee27bc5",
+    "merge_sha": "789389fd46fcfb8473544d2fb3eeabd85893294c",
+    "author_login": "timothyanderson096-ocdealcheck",
+    "commits_submitted": 1,
+    "changed_files": 2,
+    "additions": 18,
+    "deletions": 0
+  },
+  "behavior": {
+    "problem": "Rejected existing-parameter writes could omit the current-value acknowledgement; some mission protocol errors left active transfers or prematurely ended recoverable downloads.",
+    "changes": [
+      "Send the current value after unsupported-type, mismatched-type or read-only rejection of a write to an existing parameter.",
+      "Clear active mission transfer state after a matching error acknowledgement or wrong-type item during GETLIST upload.",
+      "Retain the expected transfer sequence on unexpected but in-range mission download requests."
+    ],
+    "scope": "18 inserted production lines in two MAVLink source files. No broad refactor or independent authored regression test was added to the merged tree."
+  },
+  "validation": {
+    "author_reported_native_replay": {
+      "base": "c0d2c543080517c5455b790fd42097919b914363",
+      "candidate": "that base plus submitted patch",
+      "checks_passed": 34,
+      "scope": "Disarmed native protocol replay: parameter responses, mission contents after cancellation/replacement, INT/legacy download recovery; process exited cleanly.",
+      "evidence_url": "https://github.com/user-attachments/files/34180516/PX4-protocol-test-evidence.zip",
+      "verification_boundary": "This acceptance capture read the submitted test claim and evidence link; it did not rerun the replay or independently reopen the attached ZIP.",
+      "not_exercised": [
+        "ordinary read-only parameter rejection",
+        "foreign-peer guards",
+        "congestion",
+        "physical hardware",
+        "flight"
+      ]
+    },
+    "coverage_boundary": {
+      "codecov_patch_conclusion": "success",
+      "codecov_patch_output": "0.00% of diff hit (target 54.60%)",
+      "codecov_project_output": "53.80% (target 0.00%)",
+      "meaning": "A successful CI/coverage check is not evidence that the project coverage run executed the inserted protocol branches. Separate native replay is the reported targeted behavior evidence."
+    }
+  },
+  "discussion": {
+    "complete": true,
+    "approval": {
+      "reviewer": "julianoes",
+      "state": "APPROVED",
+      "submitted_at": "2026-10-31T08:18:53Z",
+      "body": "This all looks correct, thanks!"
+    },
+    "backport_decision": {
+      "author": "julianoes",
+      "created_at": "2026-10-31T08:19:44Z",
+      "summary": "Does not consider a v1.18 backport necessary because the bug fix is noncritical and the behavior appears longstanding.",
+      "url": "https://github.com/PX4/PX4-Autopilot/pull/29522#issuecomment-6541074436"
+    },
+    "actionable_requests": []
+  },
+  "sources": [
+    {
+      "kind": "pr",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/pulls/29522"
+    },
+    {
+      "kind": "comments",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/issues/29522/comments?per_page=100"
+    },
+    {
+      "kind": "reviews",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/pulls/29522/reviews?per_page=100"
+    },
+    {
+      "kind": "inline_comments",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/pulls/29522/comments?per_page=100"
+    },
+    {
+      "kind": "files",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/pulls/29522/files?per_page=100"
+    },
+    {
+      "kind": "head_checks",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/commits/b69e269d2e3eb2c1cc309873e690dbce0ee27bc5/check-runs?per_page=100"
+    },
+    {
+      "kind": "head_runs",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/actions/runs?head_sha=b69e269d2e3eb2c1cc309873e690dbce0ee27bc5&per_page=100"
+    },
+    {
+      "kind": "merge_checks",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/commits/789389fd46fcfb8473544d2fb3eeabd85893294c/check-runs?per_page=100"
+    },
+    {
+      "kind": "merge_runs",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/actions/runs?head_sha=789389fd46fcfb8473544d2fb3eeabd85893294c&per_page=100"
+    },
+    {
+      "kind": "merge_commit",
+      "url": "https://api.github.com/repos/PX4/PX4-Autopilot/commits/789389fd46fcfb8473544d2fb3eeabd85893294c"
+    }
+  ],
+  "tests_rerun_for_acceptance_capture": false,
+  "counting_note": "One accepted contribution addressing four original reports; no distinct-defect tally or financial-value claim.",
+  "head_ci_summary": {
+    "checks_success": 69,
+    "checks_skipped": 3,
+    "workflow_success": 13
+  },
+  "merge_ci_summary": {
+    "checks_success": 81,
+    "checks_skipped": 12,
+    "workflow_success": 17,
+    "workflow_skipped": 3
+  }
+}
