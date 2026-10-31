@@ -1,16 +1,18 @@
-# BYD fan-speed owner setup — installation checked, full startup blocked
+# BYD fan-speed owner setup — hosted checks passed; owner testing pending
 
 Updated 31 October 2026. Owner-testing setup supplement for the existing fan-speed candidate in jkaberg/pyBYD#64. This work is separate from the repository’s controlled benchmark and is not counted as an accepted fix.
 
 The existing owner guide explains physical checks, but its development setup points to a container-specific launcher that does not install or mount the integration. This supplement connects the already tested paired patches to a fresh local Home Assistant configuration.
 
-**Observed result:** Python 3.14.8 and Home Assistant 2026.10.2 installed successfully with the paired editable pyBYD. Package compatibility checks passed. The actual HA loader recognized the BYD manifest in process, imported its config-flow module and built the initial seven-field user form. This did not run HTTP or the full flow manager. Normal HA startup was attempted and failed before onboarding because this workspace denies network-adapter enumeration (`ifaddr.get_adapters()` / `getifaddrs`: `PermissionError: [Errno 1] Operation not permitted`). Full startup, HTTP discovery, onboarding, frontend rendering, cloud authentication and physical fan behavior remain unverified. No supported HA configuration workaround was found; use a compatible host. No credentials or car access were supplied.
+**Latest observed result:** [GitHub-hosted validation](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/41182281872) passed normal Home Assistant startup, actual network-adapter enumeration, fresh local onboarding, normal core RUNNING, HTTP BYD handler discovery and the serialized initial user form. All eleven mandatory harness checks passed and the child stopped cleanly. See [the scoped result and retained warnings](HOSTED-RESULT.md). No BYD credentials or car were used; frontend rendering and actual cloud/vehicle behavior remain unverified.
+
+The earlier managed workspace still denies adapter enumeration with `PermissionError: [Errno 1] Operation not permitted`. Its local in-process checks and failed bootstrap are historical evidence. The hosted run supplies the startup/onboarding result on a separate authorized host without changing that restriction.
 
 ## Prerequisites
 
 Use a development computer with a compatible POSIX environment, Git, uv, network access for public source/packages, Python 3.14 support and permission for HA to enumerate local network adapters. The original integration tests used Python 3.14.8 / Home Assistant 2026.10.2. Native Windows commands are not supplied here; Windows-specific adaptation remains pending. The commands create a new directory and must not be adapted to an existing production HA configuration.
 
-The recorded installation used disposable absolute paths and explicitly provisioned Python 3.14.8. The two public source checkouts and pinned patches matched the recipe below. Editable installation happened before patch application in this run; the executable source path and final four candidate file hashes were checked afterward. Startup used a fresh neutral configuration bound to 127.0.0.1:18123. This is phase-level evidence, not a claim that the entire recipe completed onboarding verbatim.
+The earlier local installation used disposable absolute paths and explicitly provisioned Python 3.14.8. The two public source checkouts and pinned patches matched the recipe below. Editable installation happened before patch application in this run; the executable source path and final four candidate file hashes were checked afterward. Startup used a fresh neutral configuration bound to 127.0.0.1:18123. This is phase-level evidence, not a claim that the entire recipe completed onboarding verbatim.
 
 ## Prepare fresh source
 
@@ -119,9 +121,9 @@ Before owner testing, record platform, Python/HA/package versions, base commits 
 - [Pinned upstream development launcher](https://github.com/jkaberg/hass-byd-vehicle/blob/e8d660b67c51dd848a15b8410618927a04993fb8/scripts/dev/start-ha-dev.sh) supplies the editable-library and skip-dependency pattern; its /config and /workspaces paths are container-specific.
 - [Pinned original candidate, evidence and checksum manifest](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/tree/58092145fd3e25a0afc31c716fefeff3f648f937/evidence/byd-fan-speed-64).
 - Both upstream main revisions still matched the patch bases during this review. This does not guarantee future main compatibility.
-- Installation and package preflight passed; in-process manifest recognition and direct initial-form construction passed. Full bootstrap/onboarding, HACS/hassfest, cloud and physical validation remain open. Editable builds can generate version metadata; it is not part of either fan patch. Use the checked source path and method to identify the paired candidate.
+- Hosted installation, actual adapter enumeration, normal bootstrap, onboarding and the initial HTTP form passed. Frontend rendering, HACS/hassfest, cloud and physical validation remain open. Editable builds can generate version metadata; it is not part of either fan patch. Use the checked source path and method to identify the paired candidate.
 
-Next step: use a compatible clean development host for normal HA startup, fresh onboarding and HTTP/frontend integration discovery; then the consenting owner performs the agreed real-car checks.
+Next step: the consenting owner verifies their own development setup and frontend flow, then performs the agreed actual-car/BYD Cloud checks. The hosted software check does not establish behavior on their vehicle.
 
 Prepared with Codex assistance for Timothy Anderson — Spotted Ridge Engineering / OC Labs, GDN (Global Decision Network).
 
