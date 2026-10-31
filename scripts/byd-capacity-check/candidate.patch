@@ -1,0 +1,711 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 3efe28aedffbcc96d8a7164facf36a5f8303e23a..edeff8294f17a0aadf5da12d4bb719f53274bfec 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,10 @@
+ 
+ ## Deutsch
+ 
++### Unveröffentlicht
++
++- Batteriekapazität anhand der Energieeinheit des Sensors in kWh umrechnen (z. B. 11059 Wh → 11,059 kWh), damit Kapazität und Restlaufzeit korrekt berechnet werden (#6). Sensoren ohne Einheit werden weiterhin als kWh interpretiert. Unpassende Einheiten werden mit einer Warnung übersprungen; das bisherige Verhalten zur Beibehaltung vorhandener Prognosen bleibt erhalten.
++
+ ### v2.1.3
+ 
+ **🔧 Live-Lastkorrektur für die Restlaufzeit-Berechnung**
+@@ -236,6 +240,10 @@ series:
+ 
+ 🌍 [Deutsch](#deutsch) | **English**
+ 
++### Unreleased
++
++- Convert battery capacity from the sensor’s energy unit to kWh (e.g. 11059 Wh → 11.059 kWh), so capacity and runtime are calculated correctly (#6). Unitless sensors keep their existing kWh interpretation. Incompatible units are skipped with a warning; existing forecast-retention behavior is preserved.
++
+ ### v2.1.3
+ 
+ **🔧 Live-load correction for the runtime forecast**
+diff --git a/README.en.md b/README.en.md
+index 65cc74b8cd94749c64f7984367acd4668a3dc312..ea88be22ebcfb26baa84e4046d92c8dd23da9998 100644
+--- a/README.en.md
++++ b/README.en.md
+@@ -57,7 +57,7 @@ A Home Assistant custom integration for **hourly house load forecasting** and **
+ | Requirement | Details |
+ |---|---|
+ | Home Assistant | ≥ 2024.1 (recommended: ≥ 2026.3 for icon support) |
+-| Battery Integration | AlphaESS or similar — must provide capacity (kWh) and SoC (%) as sensors |
++| Battery Integration | AlphaESS or similar — must provide capacity (energy sensor, e.g. Wh or kWh) and SoC (%) as sensors |
+ | PV Forecast | [Solcast Solar Forecast](https://github.com/BJReplay/ha-solcast-solar) with `detailedHourly` attribute |
+ | House Load Sensor | Sensor with `state_class: total_increasing` (kWh, hourly) or `measurement` (W) — must be recorded in HA statistics |
+ | SQLite Database | Standard HA database at `/config/home-assistant_v2.db` |
+@@ -85,13 +85,15 @@ A Home Assistant custom integration for **hourly house load forecasting** and **
+ 
+ ## Setup
+ 
++Capacity sensors with incompatible units (e.g. W) are skipped with a warning. Until valid battery data returns, an existing forecast may remain visible.
++
+ 1. **Settings → Devices & Services → Add Integration**
+ 2. Search for **"Hauslast Prognose"**
+ 3. **Step 1 – Configure sensors:**
+ 
+ | Field | Description |
+ |---|---|
+-| Effective battery capacity | Sensor providing usable battery capacity in kWh |
++| Effective battery capacity | Sensor providing usable battery capacity in an energy unit (e.g. Wh or kWh); converted to kWh. Without a unit, values are interpreted as kWh. |
+ | Battery state of charge (SoC) | Sensor for current charge level in % |
+ | Discharge cutoff / reserve | Sensor for minimum SoC in % (e.g. `10` for 10% reserve) |
+ | PV forecast today | Solcast sensor with `detailedHourly` attribute for today |
+diff --git a/README.md b/README.md
+index a4eb34b4aea30d8e6aefb68021fa2fbf32e10118..8f0caa84ed6d5cbff5b71a4757cd1a835b82fd25 100644
+--- a/README.md
++++ b/README.md
+@@ -57,7 +57,7 @@ Eine Home Assistant Custom Integration zur **stündlichen Hauslast-Prognose** un
+ | Anforderung | Details |
+ |---|---|
+ | Home Assistant | ≥ 2024.1 (empfohlen: ≥ 2026.3 für Icon-Unterstützung) |
+-| Batteriespeicher-Integration | AlphaESS oder vergleichbar – muss Kapazität (kWh) und SoC (%) als Sensoren liefern |
++| Batteriespeicher-Integration | AlphaESS oder vergleichbar – muss Kapazität (Energiesensor, z. B. Wh oder kWh) und SoC (%) als Sensoren liefern |
+ | PV-Prognose | [Solcast Solar Forecast](https://github.com/BJReplay/ha-solcast-solar) mit `detailedHourly`-Attribut |
+ | Hauslast-Sensor | Sensor mit `state_class: total_increasing` (kWh, stündlich) oder `measurement` (W) – muss in der HA-Statistik erfasst sein |
+ | SQLite-Datenbank | Standard-HA-Datenbank unter `/config/home-assistant_v2.db` |
+@@ -85,13 +85,15 @@ Eine Home Assistant Custom Integration zur **stündlichen Hauslast-Prognose** un
+ 
+ ## Einrichtung
+ 
++Kapazitätssensoren mit unpassenden Einheiten (z. B. W) werden mit einer Warnung übersprungen. Bis wieder gültige Batteriedaten vorliegen, kann eine vorhandene Prognose sichtbar bleiben.
++
+ 1. **Einstellungen → Geräte & Dienste → Integration hinzufügen**
+ 2. Nach **„Hauslast Prognose"** suchen
+ 3. **Schritt 1 – Sensoren konfigurieren:**
+ 
+ | Feld | Beschreibung |
+ |---|---|
+-| Effektive Akkukapazität | Sensor, der die nutzbare Akkukapazität in kWh liefert |
++| Effektive Akkukapazität | Sensor für die nutzbare Akkukapazität mit Energieeinheit (z. B. Wh oder kWh); wird in kWh umgerechnet. Ohne Einheit gilt kWh. |
+ | Akku-Ladestand (SoC) | Sensor für den aktuellen Ladezustand in % |
+ | Entladeschluss / Reserve | Sensor für den minimalen SoC in % (z.B. `10` für 10 % Reserve) |
+ | PV-Prognose Heute | Solcast-Sensor mit `detailedHourly`-Attribut für heute |
+diff --git a/custom_components/houseload_forecast/CHANGELOG.md b/custom_components/houseload_forecast/CHANGELOG.md
+index 9e75a044864d1c62cd5c2fa7b3c456ebff36868c..2abce50fd3fa3cb70f72405c6e5cdb1623bf92a2 100644
+--- a/custom_components/houseload_forecast/CHANGELOG.md
++++ b/custom_components/houseload_forecast/CHANGELOG.md
+@@ -6,6 +6,10 @@
+ 
+ ## Deutsch
+ 
++### Unveröffentlicht
++
++- Batteriekapazität anhand der Energieeinheit des Sensors in kWh umrechnen (z. B. 11059 Wh → 11,059 kWh), damit Kapazität und Restlaufzeit korrekt berechnet werden (#6). Sensoren ohne Einheit werden weiterhin als kWh interpretiert. Unpassende Einheiten werden mit einer Warnung übersprungen; das bisherige Verhalten zur Beibehaltung vorhandener Prognosen bleibt erhalten.
++
+ ### v2.2.0
+ 
+ **🛡️ Trend-Sicherheitsnetz & Live-Lastkorrektur für die Restlaufzeit-Berechnung**
+@@ -239,6 +243,10 @@ series:
+ 
+ 🌍 [Deutsch](#deutsch) | **English**
+ 
++### Unreleased
++
++- Convert battery capacity from the sensor’s energy unit to kWh (e.g. 11059 Wh → 11.059 kWh), so capacity and runtime are calculated correctly (#6). Unitless sensors keep their existing kWh interpretation. Incompatible units are skipped with a warning; existing forecast-retention behavior is preserved.
++
+ ### v2.2.0
+ 
+ **🛡️ Trend safety net & live-load correction for the runtime forecast**
+diff --git a/custom_components/houseload_forecast/de.json b/custom_components/houseload_forecast/de.json
+index 2f8610a4f5d1f74d402757adb05c9a8b1019c6e1..293b3b6c16800d57f1a92253df346de8bddfbd30 100644
+--- a/custom_components/houseload_forecast/de.json
++++ b/custom_components/houseload_forecast/de.json
+@@ -5,7 +5,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Wähle die Sensoren für Batterie, PV-Prognose und Hauslast aus.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+@@ -120,7 +120,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Sensoren und Datenzeitraum anpassen.\nAdjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+diff --git a/custom_components/houseload_forecast/en.json b/custom_components/houseload_forecast/en.json
+index 7ed917b0f23b9a0f0fac7d37f6bf0fe4f9e67acf..082166b92b29dff2305fffbc918facf06cd1d09b 100644
+--- a/custom_components/houseload_forecast/en.json
++++ b/custom_components/houseload_forecast/en.json
+@@ -5,7 +5,7 @@
+         "title": "Sensors & Settings",
+         "description": "Select the sensors for battery, PV forecast and household load.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+@@ -120,7 +120,7 @@
+         "title": "Sensors & Settings",
+         "description": "Adjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+diff --git a/custom_components/houseload_forecast/sensor.py b/custom_components/houseload_forecast/sensor.py
+index 5072da47ebe2c91f446e9f95411648148d74e99c..700c3c5be334dcf59993c5756463d90b2bfe991f 100644
+--- a/custom_components/houseload_forecast/sensor.py
++++ b/custom_components/houseload_forecast/sensor.py
+@@ -5,6 +5,7 @@ import json
+ import logging
+ import os
+ from datetime import datetime, timedelta
++from math import isfinite
+ 
+ from homeassistant.components.sensor import (
+     SensorDeviceClass,
+@@ -12,12 +13,14 @@ from homeassistant.components.sensor import (
+     SensorStateClass,
+ )
+ from homeassistant.config_entries import ConfigEntry
+-from homeassistant.const import EntityCategory
++from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT, EntityCategory, UnitOfEnergy
+ from homeassistant.core import HomeAssistant, callback
++from homeassistant.exceptions import HomeAssistantError
+ from homeassistant.helpers.entity_platform import AddEntitiesCallback
+ from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
+ from homeassistant.helpers.restore_state import RestoreEntity
+ from homeassistant.util import dt as dt_util
++from homeassistant.util.unit_conversion import EnergyConverter
+ 
+ from .const import (
+     CONF_BAT_CAPACITY_SENSOR,
+@@ -361,6 +364,36 @@ class HauslastCoordinator:
+         except (ValueError, TypeError):
+             return default
+ 
++    def _get_capacity_kwh(self, entity_id: str | None) -> float:
++        """Read battery capacity in kWh, preserving legacy unitless sensors."""
++        if not entity_id:
++            return 0.0
++        state = self.hass.states.get(entity_id)
++        if state is None or state.state in ("unknown", "unavailable", ""):
++            return 0.0
++        try:
++            capacity = float(state.state)
++        except (ValueError, TypeError):
++            return 0.0
++        if not isfinite(capacity):
++            return 0.0
++
++        unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
++        if unit is None or unit == "":
++            return capacity
++        if isinstance(unit, str):
++            try:
++                capacity = EnergyConverter.convert(capacity, unit, UnitOfEnergy.KILO_WATT_HOUR)
++            except HomeAssistantError:
++                pass
++            else:
++                return capacity if isfinite(capacity) else 0.0
++        _LOGGER.warning(
++            "Batteriekapazitätssensor %s hat eine ungültige Energieeinheit %r – überspringe Berechnung",
++            entity_id, unit,
++        )
++        return 0.0
++
+     def _compute(self):
+         import sqlite3
+ 
+@@ -550,7 +583,7 @@ class HauslastCoordinator:
+             self.profile_source_we = f"Fallback (DB-Fehler: {exc})"
+ 
+         # ── Batterie-Werte ─────────────────────────────────────────────
+-        self.bat_capacity_raw = self._get_float(self.cfg.get(CONF_BAT_CAPACITY_SENSOR))
++        self.bat_capacity_raw = self._get_capacity_kwh(self.cfg.get(CONF_BAT_CAPACITY_SENSOR))
+         self.soc_pct_raw      = self._get_float(self.cfg.get(CONF_BAT_SOC_SENSOR))
+         self.cutoff_pct_raw   = self._get_float(self.cfg.get(CONF_BAT_CUTOFF_SENSOR))
+ 
+@@ -863,7 +896,7 @@ class HauslastCoordinator:
+ 
+         if hauslast_current_kw > 0.001 and self.bat_rest_kwh > 0.001:
+             bat_only_h = self.bat_rest_kwh / hauslast_current_kw
+-            self.bat_only_runtime_min = min(int(bat_only_h * 60), MAX_RUNTIME_MIN)
++            self.bat_only_runtime_min = int(min(bat_only_h * 60, MAX_RUNTIME_MIN))
+         else:
+             self.bat_only_runtime_min = 0
+ 
+diff --git a/custom_components/houseload_forecast/strings.json b/custom_components/houseload_forecast/strings.json
+index 493bec7a9b1393862f7312029086dad25063de85..b20c791cba24d3f09203a2a8323cab9375e3e4e5 100644
+--- a/custom_components/houseload_forecast/strings.json
++++ b/custom_components/houseload_forecast/strings.json
+@@ -5,7 +5,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Wähle die Sensoren für Batterie, PV-Prognose und Hauslast aus.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+@@ -120,7 +120,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Sensoren und Datenzeitraum anpassen.\nAdjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+diff --git a/custom_components/houseload_forecast/translations/de.json b/custom_components/houseload_forecast/translations/de.json
+index 1161af5d8da5abfba017ef8dd7062036bfc8de4a..595877c89b6e08d5fcbe154932ffaa32c2903927 100644
+--- a/custom_components/houseload_forecast/translations/de.json
++++ b/custom_components/houseload_forecast/translations/de.json
+@@ -5,7 +5,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Wähle die Sensoren für Batterie, PV-Prognose und Hauslast aus.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+@@ -120,7 +120,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Sensoren und Datenzeitraum anpassen.\nAdjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+diff --git a/custom_components/houseload_forecast/translations/en.json b/custom_components/houseload_forecast/translations/en.json
+index caf0182d59c5298b8c8c2abf296d90ba37cfe21b..063226e83389969dc92c7e139a85a88cf89eb026 100644
+--- a/custom_components/houseload_forecast/translations/en.json
++++ b/custom_components/houseload_forecast/translations/en.json
+@@ -5,7 +5,7 @@
+         "title": "Sensors & Settings",
+         "description": "Select the sensors for battery, PV forecast and household load.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+@@ -120,7 +120,7 @@
+         "title": "Sensors & Settings",
+         "description": "Adjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+diff --git a/translations/de.json b/translations/de.json
+index 056bb9cc7931c382aceb9eb5abb8bb00d4cc00ec..da2da967d4542576a194015034b0a7fa063031f7 100644
+--- a/translations/de.json
++++ b/translations/de.json
+@@ -5,7 +5,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Wähle die Sensoren für Batterie, PV-Prognose und Hauslast aus.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+@@ -120,7 +120,7 @@
+         "title": "Sensoren & Einstellungen / Sensors & Settings",
+         "description": "Sensoren und Datenzeitraum anpassen.\nAdjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Sensor in kWh)",
++          "bat_capacity_sensor": "Effektive Akkukapazität / Effective Battery Capacity (Energiesensor, z. B. Wh oder kWh)",
+           "bat_soc_sensor": "Akku-Ladestand / Battery State of Charge (Sensor in %)",
+           "bat_cutoff_sensor": "Entladeschluss / Discharge Cutoff (Sensor in %)",
+           "pv_forecast_today_sensor": "PV-Prognose Heute / PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "Hauslast aktuell / House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Gesamtkapazität des Akkus in kWh / Total battery capacity in kWh",
++          "bat_capacity_sensor": "Gesamtkapazität; Energieeinheiten werden in kWh umgerechnet. Ohne Einheit gilt kWh. / Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Aktueller Ladestand in Prozent / Current state of charge in percent",
+           "bat_cutoff_sensor": "Mindest-Ladestand in Prozent / Minimum charge level in percent",
+           "pv_forecast_today_sensor": "Muss Attribut detailedHourly mit pv_estimate enthalten / Must contain detailedHourly attribute with pv_estimate",
+diff --git a/translations/en.json b/translations/en.json
+index 6a00baa91f96b24e309697995d4b851db1c73e69..ac021620e1bd903b13cda52712568b32a28c36b1 100644
+--- a/translations/en.json
++++ b/translations/en.json
+@@ -5,7 +5,7 @@
+         "title": "Sensors & Settings",
+         "description": "Select the sensors for battery, PV forecast and household load.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -17,7 +17,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+@@ -120,7 +120,7 @@
+         "title": "Sensors & Settings",
+         "description": "Adjust sensors and history period.",
+         "data": {
+-          "bat_capacity_sensor": "Effective Battery Capacity (sensor in kWh)",
++          "bat_capacity_sensor": "Effective Battery Capacity (energy sensor, e.g. Wh or kWh)",
+           "bat_soc_sensor": "Battery State of Charge (sensor in %)",
+           "bat_cutoff_sensor": "Discharge Cutoff / Reserve (sensor in %)",
+           "pv_forecast_today_sensor": "PV Forecast Today (Solcast)",
+@@ -132,7 +132,7 @@
+           "hauslast_aktuell_sensor": "House Load Current (Sensor in W)"
+         },
+         "data_description": {
+-          "bat_capacity_sensor": "Total battery capacity in kWh",
++          "bat_capacity_sensor": "Total battery capacity; energy units are converted to kWh. Without a unit, values are interpreted as kWh.",
+           "bat_soc_sensor": "Current state of charge in percent",
+           "bat_cutoff_sensor": "Minimum charge level in percent (reserve)",
+           "pv_forecast_today_sensor": "Must contain attribute detailedHourly with pv_estimate per hour",
+diff --git a/tests/test_capacity_units.py b/tests/test_capacity_units.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9e0f98f260561839b2914333c8a17311f43f3b68
+--- /dev/null
++++ b/tests/test_capacity_units.py
+@@ -0,0 +1,230 @@
++"""Capacity-unit regressions using real HA states and the full coordinator.
++
++Run with Home Assistant installed: python -m unittest discover -s tests -v
++Recorder and cache paths are redirected to temporary fixture files.
++"""
++
++from __future__ import annotations
++
++import copy
++import sqlite3
++import tempfile
++import unittest
++from contextlib import closing
++from datetime import UTC, datetime, timedelta
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import patch
++
++from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT
++from homeassistant.core import HomeAssistant, State
++
++from custom_components.houseload_forecast import sensor
++from custom_components.houseload_forecast.const import (
++    CONF_BAT_CAPACITY_SENSOR,
++    CONF_BAT_CUTOFF_SENSOR,
++    CONF_BAT_SOC_SENSOR,
++    CONF_HAUSLAST_AKTUELL,
++)
++
++_MISSING_UNIT = object()
++
++
++class CapacityUnitTests(unittest.IsolatedAsyncioTestCase):
++    """Exercise energy scaling and the existing invalid-input lifecycle."""
++
++    async def asyncSetUp(self):
++        temporary = tempfile.TemporaryDirectory(prefix="capacity-test-")
++        self.addCleanup(temporary.cleanup)
++        root = Path(temporary.name)
++        paths = patch.multiple(
++            sensor,
++            DB_PATH=str(root / "recorder.db"),
++            _CACHE_SOC=str(root / "soc.json"),
++            _CACHE_HL=str(root / "load.json"),
++        )
++        paths.start()
++        self.addCleanup(paths.stop)
++        with closing(sqlite3.connect(sensor.DB_PATH)) as database:
++            database.executescript(
++                "CREATE TABLE statistics_meta(id INTEGER, statistic_id TEXT, has_mean INTEGER, has_sum INTEGER);"
++                "CREATE TABLE statistics(metadata_id INTEGER, start_ts REAL, mean REAL, sum REAL);"
++            )
++        self.now = datetime(2026, 10, 31, 12, 0, tzinfo=UTC)
++        clock = patch.object(sensor.dt_util, "now", return_value=self.now)
++        self.clock = clock.start()
++        self.addCleanup(clock.stop)
++        self.hass = HomeAssistant(str(root))
++        self.addAsyncCleanup(self.hass.async_stop)
++        self.hass.states.async_set("sensor.soc", "55.8", {ATTR_UNIT_OF_MEASUREMENT: "%"})
++        self.hass.states.async_set("sensor.cutoff", "10", {ATTR_UNIT_OF_MEASUREMENT: "%"})
++        self.hass.states.async_set("sensor.load", "500", {ATTR_UNIT_OF_MEASUREMENT: "W"})
++        self.cfg = {
++            CONF_BAT_CAPACITY_SENSOR: "sensor.capacity",
++            CONF_BAT_SOC_SENSOR: "sensor.soc",
++            CONF_BAT_CUTOFF_SENSOR: "sensor.cutoff",
++            CONF_HAUSLAST_AKTUELL: "sensor.load",
++        }
++        self.coordinator = self.new_coordinator()
++
++    def new_coordinator(self):
++        return sensor.HauslastCoordinator(self.hass, self.cfg, [500] * 24, [500] * 24)
++
++    def set_capacity(self, value: str, unit: object = _MISSING_UNIT):
++        attributes = {} if unit is _MISSING_UNIT else {ATTR_UNIT_OF_MEASUREMENT: unit}
++        self.hass.states.async_set("sensor.capacity", value, attributes)
++
++    def forecast_snapshot(self):
++        coordinator = self.coordinator
++        return copy.deepcopy({
++            field: getattr(coordinator, field)
++            for field in (
++                "bat_max_kwh", "bat_kwh", "bat_rest_kwh", "cutoff_kwh",
++                "restlaufzeit_min", "bat_only_runtime_min", "battery_empty_at",
++                "forecast_heute", "forecast_morgen", "forecast_uebermorgen", "soc_forecast",
++            )
++        })
++
++    async def test_wh_capacity_matches_documented_kwh_forecast(self):
++        self.set_capacity("11.059", "kWh")
++        await self.coordinator.async_refresh()
++        control = self.forecast_snapshot()
++        self.set_capacity("11059", "Wh")
++        self.coordinator = self.new_coordinator()
++        await self.coordinator.async_refresh()
++        self.assertEqual(self.forecast_snapshot(), control)
++        self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
++        self.assertAlmostEqual(self.coordinator.bat_kwh, 6.170922)
++        self.assertAlmostEqual(self.coordinator.bat_rest_kwh, 5.065022)
++        self.assertEqual(self.coordinator.bat_only_runtime_min, 607)
++
++    async def test_energy_prefixes_and_joules_convert_to_kwh(self):
++        for value, unit in (("11059000", "mWh"), ("0.011059", "MWh"), ("39812400", "J")):
++            with self.subTest(unit=unit):
++                self.set_capacity(value, unit)
++                self.coordinator = self.new_coordinator()
++                await self.coordinator.async_refresh()
++                self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
++                self.assertAlmostEqual(self.coordinator.bat_rest_kwh, 5.065022)
++                self.assertTrue(self.coordinator._has_valid_data)
++
++    async def test_kwh_and_unitless_sensors_keep_existing_values(self):
++        for unit in ("kWh", _MISSING_UNIT, None, ""):
++            with self.subTest(unit=unit):
++                self.set_capacity("11.059", unit)
++                self.coordinator = self.new_coordinator()
++                await self.coordinator.async_refresh()
++                self.assertEqual(self.coordinator.bat_max_kwh, 11.059)
++                self.assertAlmostEqual(self.coordinator.bat_rest_kwh, 5.065022)
++                self.assertEqual(self.coordinator.hauslast_aktuell_kw, 0.5)
++                self.assertEqual(self.coordinator.soc_pct_raw, 55.8)
++                self.assertEqual(self.coordinator.cutoff_pct_raw, 10.0)
++
++    async def test_incompatible_or_malformed_units_skip_initial_forecast(self):
++        for unit in ("W", "%", "KWH", "unexpected", 123, ["Wh"], {"unit": "Wh"}):
++            with self.subTest(unit=unit):
++                self.set_capacity("11059", unit)
++                self.coordinator = self.new_coordinator()
++                with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
++                    await self.coordinator.async_refresh()
++                self.assertIn("sensor.capacity", messages.output[0])
++                self.assertFalse(self.coordinator._has_valid_data)
++                self.assertEqual(self.coordinator.bat_max_kwh, 0.0)
++                self.assertEqual(self.coordinator.soc_forecast, [])
++
++    async def test_missing_unavailable_and_malformed_values_skip_initial_forecast(self):
++        for value in (None, "unknown", "unavailable", "", "not-a-number", "0", "-1"):
++            with self.subTest(value=value):
++                if value is None:
++                    self.hass.states.async_remove("sensor.capacity")
++                else:
++                    self.set_capacity(value, "Wh")
++                self.coordinator = self.new_coordinator()
++                await self.coordinator.async_refresh()
++                self.assertFalse(self.coordinator._has_valid_data)
++                self.assertEqual(self.coordinator.bat_max_kwh, 0.0)
++
++    async def test_capacity_numeric_boundaries_do_not_overflow(self):
++        for value, unit in (("nan", "Wh"), ("inf", "kWh"), ("-inf", "Wh"), ("1e308", "MWh")):
++            with self.subTest(value=value, unit=unit):
++                self.set_capacity(value, unit)
++                self.coordinator = self.new_coordinator()
++                await self.coordinator.async_refresh()
++                self.assertFalse(self.coordinator._has_valid_data)
++                self.assertEqual(self.coordinator.bat_max_kwh, 0.0)
++        for value, unit in (("1e308", "kWh"), ("1e304", "MWh")):
++            with self.subTest(finite_value=value, unit=unit):
++                self.set_capacity(value, unit)
++                self.coordinator = self.new_coordinator()
++                await self.coordinator.async_refresh()
++                self.assertTrue(self.coordinator._has_valid_data)
++                self.assertEqual(self.coordinator.bat_only_runtime_min, 2880)
++
++    async def test_capacity_value_and_unit_use_one_state_snapshot(self):
++        reads = []
++        first = State("sensor.capacity", "11059", {ATTR_UNIT_OF_MEASUREMENT: "Wh"})
++        second = State("sensor.capacity", "11.059", {ATTR_UNIT_OF_MEASUREMENT: "kWh"})
++        original = self.hass.states.get
++
++        def get_state(entity_id):
++            if entity_id == "sensor.capacity":
++                reads.append(entity_id)
++                return first if len(reads) == 1 else second
++            return original(entity_id)
++
++        with patch.object(type(self.hass.states), "get", side_effect=get_state):
++            await self.coordinator.async_refresh()
++        self.assertEqual(len(reads), 1)
++        self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
++
++    async def test_actual_ha_publication_preserves_retention_and_recovers(self):
++        entry = SimpleNamespace(entry_id="capacity_test")
++        runtime = sensor.AkkuRestlaufzeitSensor(self.coordinator, entry)
++        capacity = sensor.DiagnosticSensor(self.coordinator, entry, "bat_max_kwh", "Capacity", "kWh", None, None)
++        # Bind actual HA entities for publication without claiming platform/config-entry setup coverage.
++        for entity in (runtime, capacity):
++            entity.hass = self.hass
++            entity._verified_state_writable = True
++            entity._unit_of_measurement_translation_key = None
++        self.coordinator.async_register_entities([runtime, capacity])
++
++        self.set_capacity("11059", "W")
++        with self.assertLogs(sensor._LOGGER, level="WARNING"):
++            await self.coordinator.async_refresh()
++        self.assertEqual(self.hass.states.get(runtime.entity_id).state, "unavailable")
++        self.assertEqual(self.hass.states.get(capacity.entity_id).state, "unavailable")
++
++        self.set_capacity("11059", "Wh")
++        await self.coordinator.async_refresh()
++        valid_runtime = self.hass.states.get(runtime.entity_id).state
++        self.assertNotEqual(valid_runtime, "unavailable")
++        self.assertEqual(self.hass.states.get(capacity.entity_id).state, "11.059")
++        valid_forecast = self.forecast_snapshot()
++        for unit in ("kWh", _MISSING_UNIT, None, ""):
++            with self.subTest(published_control_unit=unit):
++                self.set_capacity("11.059", unit)
++                await self.coordinator.async_refresh()
++                self.assertEqual(self.forecast_snapshot(), valid_forecast)
++                self.assertEqual(self.hass.states.get(runtime.entity_id).state, valid_runtime)
++                self.assertEqual(self.hass.states.get(capacity.entity_id).state, "11.059")
++
++        self.clock.return_value = self.now + timedelta(minutes=1)
++        self.set_capacity("11059", "W")
++        with self.assertLogs(sensor._LOGGER, level="WARNING"):
++            await self.coordinator.async_refresh()
++        self.assertEqual(self.forecast_snapshot(), valid_forecast)
++        self.assertTrue(runtime.available)
++        retained = self.hass.states.get(runtime.entity_id)
++        self.assertEqual(retained.state, valid_runtime)
++        self.assertEqual(retained.attributes["diag_bat_kapazitaet_kwh"], 0.0)
++        # Existing behavior: the timestamp advances even when the prior forecast is retained.
++        self.assertEqual(retained.attributes["calculation_timestamp"], "2026-10-31 12:01:00")
++
++        self.set_capacity("22000", "Wh")
++        await self.coordinator.async_refresh()
++        self.assertEqual(self.hass.states.get(capacity.entity_id).state, "22.0")
++        self.assertAlmostEqual(self.coordinator.bat_rest_kwh, 10.076)
++
++
++if __name__ == "__main__":
++    unittest.main()

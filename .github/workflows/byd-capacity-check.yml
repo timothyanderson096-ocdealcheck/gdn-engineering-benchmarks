@@ -1,0 +1,109 @@
+name: Battery capacity mandatory candidate gates
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/byd-capacity-check.yml
+      - scripts/byd-capacity-check/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: byd-capacity-check-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  native-hassfest:
+    name: Pinned native regressions and mandatory candidate gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+    steps:
+      - name: Check out the reviewed validation helper
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set validation paths
+        run: |
+          echo "BYD_SOURCE_DIR=$RUNNER_TEMP/capacity-source" >> "$GITHUB_ENV"
+          echo "BYD_EVIDENCE_DIR=$RUNNER_TEMP/capacity-evidence" >> "$GITHUB_ENV"
+
+      - name: Set up the native test Python
+        id: native-python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14.8'
+
+      - name: Set up the project syntax target
+        id: compile-python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+
+      - name: Restore the exact source and verify candidate patch and blobs
+        id: source
+        run: python scripts/byd-capacity-check/validate.py prepare --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Run eight native coordinator regressions and pinned Ruff
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-capacity-check/validate.py native --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR" --python '${{ steps.native-python.outputs.python-path }}'
+
+      - name: Compile the integration with Python 3.12.14
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-capacity-check/validate.py compile --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR" --python '${{ steps.compile-python.outputs.python-path }}'
+
+      - name: Probe the Docker daemon and run pinned hassfest
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-capacity-check/validate.py hassfest --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Verify the actual public fork and run all HACS candidate checks
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        env:
+          BYD_HACS_TOKEN: ${{ github.token }}
+        run: python scripts/byd-capacity-check/validate.py hacs --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Report actual statuses for all required candidate gates
+        if: always()
+        run: python scripts/byd-capacity-check/validate.py report --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Retain only selected validation evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: capacity-candidate-gates-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/capacity-evidence/result.json
+            ${{ runner.temp }}/capacity-evidence/summary.md
+            ${{ runner.temp }}/capacity-evidence/source.json
+            ${{ runner.temp }}/capacity-evidence/native-version.log
+            ${{ runner.temp }}/capacity-evidence/venv.log
+            ${{ runner.temp }}/capacity-evidence/install.log
+            ${{ runner.temp }}/capacity-evidence/dependency-check.log
+            ${{ runner.temp }}/capacity-evidence/packages.log
+            ${{ runner.temp }}/capacity-evidence/runtime-versions.log
+            ${{ runner.temp }}/capacity-evidence/regression.log
+            ${{ runner.temp }}/capacity-evidence/regression-result.json
+            ${{ runner.temp }}/capacity-evidence/ruff.log
+            ${{ runner.temp }}/capacity-evidence/compile-version.log
+            ${{ runner.temp }}/capacity-evidence/compile.log
+            ${{ runner.temp }}/capacity-evidence/docker-probe.log
+            ${{ runner.temp }}/capacity-evidence/hassfest-pull.log
+            ${{ runner.temp }}/capacity-evidence/hassfest-image.log
+            ${{ runner.temp }}/capacity-evidence/hassfest.log
+            ${{ runner.temp }}/capacity-evidence/hacs-target.json
+            ${{ runner.temp }}/capacity-evidence/hacs-pull.log
+            ${{ runner.temp }}/capacity-evidence/hacs-image.log
+            ${{ runner.temp }}/capacity-evidence/hacs.log
