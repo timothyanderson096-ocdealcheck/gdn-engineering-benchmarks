@@ -1,0 +1,70 @@
+name: PX4 unchanged SIH readiness recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/px4-sih-capability.yml
+      - scripts/px4-sih-capability/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: px4-sih-capability-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sih-readiness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned native build Python
+        id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set isolated paths
+        run: |
+          echo "PX4_SIH_SOURCE=$RUNNER_TEMP/px4-sih-source" >> "$GITHUB_ENV"
+          echo "PX4_SIH_EVIDENCE=$RUNNER_TEMP/px4-sih-evidence" >> "$GITHUB_ENV"
+      - name: Restore exact unchanged source
+        id: source
+        run: python scripts/px4-sih-capability/validate.py prepare --source "$PX4_SIH_SOURCE" --evidence "$PX4_SIH_EVIDENCE"
+      - name: Reuse exact reviewed native setup and constraints
+        id: setup
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-sih-capability/validate.py setup --source "$PX4_SIH_SOURCE" --evidence "$PX4_SIH_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Build normal SITL and prove module plus disarmed loopback readiness
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: python scripts/px4-sih-capability/validate.py readiness --source "$PX4_SIH_SOURCE" --evidence "$PX4_SIH_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Verify no source bytes changed
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-sih-capability/validate.py final --source "$PX4_SIH_SOURCE" --evidence "$PX4_SIH_EVIDENCE"
+      - name: Report readiness with prior native evidence kept separate
+        if: always()
+        run: python scripts/px4-sih-capability/validate.py report --source "$PX4_SIH_SOURCE" --evidence "$PX4_SIH_EVIDENCE"
+      - name: Retain actual logs, heartbeat bytes, status exits and source proofs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: px4-sih-readiness-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/px4-sih-evidence/*.json
+            ${{ runner.temp }}/px4-sih-evidence/*.log
+            ${{ runner.temp }}/px4-sih-evidence/summary.md
+            ${{ runner.temp }}/px4-sih-evidence/startup/*.json
+            ${{ runner.temp }}/px4-sih-evidence/startup/*.log
