@@ -1,0 +1,25 @@
+diff --git a/src/modules/mavlink/mavlink_events.cpp b/src/modules/mavlink/mavlink_events.cpp
+index 9cfb5cbb9188bdb7c42184b9e5d75259544d3dc4..3e77e9a6cadb91e66d0f8e53050cb3b070f9f209 100644
+--- a/src/modules/mavlink/mavlink_events.cpp
++++ b/src/modules/mavlink/mavlink_events.cpp
+@@ -188,7 +188,10 @@ void SendProtocol::handle_request_event(const mavlink_message_t &msg) const
+ 
+ 	const uint16_t end_sequence = request_event.last_sequence + 1;
+ 
+-	for (uint16_t sequence = request_event.first_sequence; sequence != end_sequence; ++sequence) {
++	uint16_t sequence = request_event.first_sequence;
++
++	// An inclusive range always contains at least one sequence, even if the end wraps to the start.
++	do {
+ 		if (_buffer.get_event(sequence, e)) {
+ 			PX4_DEBUG("sending requested event %i", sequence);
+ 			send_event(e);
+@@ -202,7 +205,7 @@ void SendProtocol::handle_request_event(const mavlink_message_t &msg) const
+ 			PX4_DEBUG("Event unavailable (seq=%i oldest=%i)", sequence, event_error.sequence_oldest_available);
+ 			mavlink_msg_send_struct_target(_mavlink.get_channel(), RESPONSE_EVENT_ERROR, &event_error, msg.sysid);
+ 		}
+-	}
++	} while (++sequence != end_sequence);
+ }
+ 
+ void SendProtocol::send_event(const Event &event) const

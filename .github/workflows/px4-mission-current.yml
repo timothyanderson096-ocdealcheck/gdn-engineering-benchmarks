@@ -1,0 +1,93 @@
+name: PX4 mission-current diagnostic and native compatibility
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/px4-mission-current.yml
+      - scripts/px4-mission-current/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: px4-mission-current-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mission-current:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned native build Python
+        id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set isolated paths
+        run: |
+          echo "PX4_MISSION_SOURCE=$RUNNER_TEMP/px4-mission-source" >> "$GITHUB_ENV"
+          echo "PX4_MISSION_EVIDENCE=$RUNNER_TEMP/px4-mission-evidence" >> "$GITHUB_ENV"
+      - name: Verify frozen helpers and restore exact unchanged source
+        id: source
+        run: python scripts/px4-mission-current/validate.py prepare --source "$PX4_MISSION_SOURCE" --evidence "$PX4_MISSION_EVIDENCE"
+      - name: Install and record ordinary native environment
+        id: setup
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-mission-current/validate.py setup --source "$PX4_MISSION_SOURCE" --evidence "$PX4_MISSION_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Baseline strict actual-method diagnostic and native SIH wire compatibility
+        id: baseline
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: python scripts/px4-mission-current/validate.py baseline --source "$PX4_MISSION_SOURCE" --evidence "$PX4_MISSION_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Corrected sole mission candidate format, diagnostic, native tests and same wire compatibility
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
+        run: python scripts/px4-mission-current/validate.py candidate --source "$PX4_MISSION_SOURCE" --evidence "$PX4_MISSION_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Report actual evidence and unrun publication gates
+        if: always()
+        run: python scripts/px4-mission-current/validate.py report --source "$PX4_MISSION_SOURCE" --evidence "$PX4_MISSION_EVIDENCE"
+      - name: Retain exact diagnostics, raw wire data, actual native results and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: px4-mission-current-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/px4-mission-evidence/*.json
+            ${{ runner.temp }}/px4-mission-evidence/*.log
+            ${{ runner.temp }}/px4-mission-evidence/summary.md
+            ${{ runner.temp }}/px4-mission-evidence/baseline/*.json
+            ${{ runner.temp }}/px4-mission-evidence/baseline/*.log
+            ${{ runner.temp }}/px4-mission-evidence/baseline/diagnostic/*.json
+            ${{ runner.temp }}/px4-mission-evidence/baseline/diagnostic/*.log
+            ${{ runner.temp }}/px4-mission-evidence/baseline/diagnostic/*.cpp
+            ${{ runner.temp }}/px4-mission-evidence/baseline/rejected/*.json
+            ${{ runner.temp }}/px4-mission-evidence/baseline/rejected/*.log
+            ${{ runner.temp }}/px4-mission-evidence/baseline/rejected/diagnostic/*.json
+            ${{ runner.temp }}/px4-mission-evidence/baseline/rejected/diagnostic/*.log
+            ${{ runner.temp }}/px4-mission-evidence/baseline/rejected/diagnostic/*.cpp
+            ${{ runner.temp }}/px4-mission-evidence/baseline/wire/*.json
+            ${{ runner.temp }}/px4-mission-evidence/baseline/wire/*.log
+            ${{ runner.temp }}/px4-mission-evidence/baseline/wire/*.jsonl
+            ${{ runner.temp }}/px4-mission-evidence/baseline/wire/*.udp
+            ${{ runner.temp }}/px4-mission-evidence/candidate/*.json
+            ${{ runner.temp }}/px4-mission-evidence/candidate/*.log
+            ${{ runner.temp }}/px4-mission-evidence/candidate/*.xml
+            ${{ runner.temp }}/px4-mission-evidence/candidate/diagnostic/*.json
+            ${{ runner.temp }}/px4-mission-evidence/candidate/diagnostic/*.log
+            ${{ runner.temp }}/px4-mission-evidence/candidate/diagnostic/*.cpp
+            ${{ runner.temp }}/px4-mission-evidence/candidate/wire/*.json
+            ${{ runner.temp }}/px4-mission-evidence/candidate/wire/*.log
+            ${{ runner.temp }}/px4-mission-evidence/candidate/wire/*.jsonl
+            ${{ runner.temp }}/px4-mission-evidence/candidate/wire/*.udp

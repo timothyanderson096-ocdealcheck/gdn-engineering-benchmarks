@@ -1,0 +1,814 @@
+{
+  "version": 1,
+  "base": "789389fd46fcfb8473544d2fb3eeabd85893294c",
+  "total_assertions": 79,
+  "handler_invocations": 24,
+  "expected_failures": {
+    "baseline": {
+      "notification": [
+        "new sequence: request-caused current after mission publish",
+        "same sequence: request-caused current after mission publish",
+        "last valid sequence: request-caused current after mission publish",
+        "mission-planner target: request-caused current after mission publish",
+        "all-components target: request-caused current after mission publish",
+        "existing sender acceptance: request-caused current after mission publish",
+        "existing dataman failure semantics: request-caused current after mission publish",
+        "TARGET32 own system: request-caused current after mission publish",
+        "four repeated requests each cause reply without periodic dispatch"
+      ],
+      "inherited_cached_metadata": [
+        "cached status: changed result recomputes completion",
+        "cached status: changed result recomputes no-mission",
+        "cached status: empty count recomputes no-mission",
+        "cached suspended status: changed result recomputes paused"
+      ],
+      "new_completion_regression": []
+    },
+    "rejected": {
+      "notification": [],
+      "inherited_cached_metadata": [
+        "cached status: changed result recomputes completion",
+        "cached status: changed result recomputes no-mission",
+        "cached status: empty count recomputes no-mission",
+        "cached suspended status: changed result recomputes paused"
+      ],
+      "new_completion_regression": [
+        "pending completion still recomputes actual metadata"
+      ]
+    },
+    "candidate": {
+      "notification": [],
+      "inherited_cached_metadata": [],
+      "new_completion_regression": []
+    }
+  },
+  "snapshots": {
+    "baseline": {
+      "source_git_blob": "c30d137d2e4e86ee0072e326e3aac8a4166cc833",
+      "compile_exit": 0,
+      "run_exit": 1,
+      "observations": {
+        "passed": 66,
+        "failed": 13,
+        "regression_failures": 9,
+        "control_failures": 4,
+        "handler_invocations": 24
+      },
+      "counterexample": "COUNTEREXAMPLE packets_after_request=0 total_packets=1 last_state=5 expected_complete=5 pending_status=0 result_finished=1"
+    },
+    "rejected": {
+      "source_git_blob": "e73172e7ab4db374231d4fc04a02e7388c8ba263",
+      "compile_exit": 0,
+      "run_exit": 1,
+      "observations": {
+        "passed": 74,
+        "failed": 5,
+        "regression_failures": 0,
+        "control_failures": 5,
+        "handler_invocations": 24
+      },
+      "counterexample": "COUNTEREXAMPLE packets_after_request=1 total_packets=2 last_state=3 expected_complete=5 pending_status=0 result_finished=1"
+    },
+    "candidate": {
+      "source_git_blob": "a7d09a9c2b3b1e3ad349eb4e362f29a7838a1162",
+      "compile_exit": 0,
+      "run_exit": 0,
+      "observations": {
+        "passed": 79,
+        "failed": 0,
+        "regression_failures": 0,
+        "control_failures": 0,
+        "handler_invocations": 24
+      },
+      "counterexample": "COUNTEREXAMPLE packets_after_request=1 total_packets=2 last_state=5 expected_complete=5 pending_status=0 result_finished=1"
+    }
+  },
+  "frozen_fixture": {
+    "run_probe.py": "f62b4ddaaba62bd6208c6e1ccfd96b27d145e7988b56193349864e0f702b3b4c",
+    "probe.cpp.in": "bbfbc41dbd7aed0ed0c2c745e72f061c3874ec110164f24527f5456aa55cfea2"
+  },
+  "required_methods": [
+    "target_system",
+    "target_component",
+    "update_locked",
+    "update",
+    "metadata",
+    "current",
+    "periodic",
+    "handler"
+  ],
+  "assertions": [
+    {
+      "name": "new sequence: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "new sequence: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "new sequence: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "new sequence: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "same sequence: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "same sequence: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "same sequence: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "same sequence: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "last valid sequence: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "last valid sequence: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "last valid sequence: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "last valid sequence: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "mission-planner target: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "mission-planner target: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "mission-planner target: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "mission-planner target: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "all-components target: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "all-components target: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "all-components target: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "all-components target: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing sender acceptance: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing sender acceptance: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing sender acceptance: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing sender acceptance: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing dataman failure semantics: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing dataman failure semantics: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing dataman failure semantics: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing dataman failure semantics: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 own system: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 own system: request-caused current after mission publish",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 own system: existing mission identity",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 own system: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "foreign system: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "foreign system: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "foreign system: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 foreign overrides matching payload: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 foreign overrides matching payload: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "TARGET32 foreign overrides matching payload: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "unsupported target component: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "unsupported target component: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "unsupported target component: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing zero-system rejection: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing zero-system rejection: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing zero-system rejection: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy upload: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy upload: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy upload: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy download: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy download: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "busy download: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "index equal count: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "index equal count: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "index equal count: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "max invalid index: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "max invalid index: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "max invalid index: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "empty mission: existing active update",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "empty mission: no new causal reply",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "empty mission: locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "four repeated requests each cause reply without periodic dispatch",
+      "category": "notification",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "repeated requests retain existing four updates",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "actual periodic sender still emits",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "periodic sender remains after request",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "actual mission-result sender still emits",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "existing high-latency periodic suppression",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "sender locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "request does not consume staged mission-result completion",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "pending completion still recomputes actual metadata",
+      "category": "completion_order",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "FAIL",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "no initial status: do not fabricate mode or state",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "no initial status: mission-result update remains pending",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "no initial status: accepted update still publishes mission",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "initial advertised status computes active metadata",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "status read marks only its own generation read",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "cached status: changed result recomputes completion",
+      "category": "inherited_cached_metadata",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "FAIL",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "cached status: changed result recomputes no-mission",
+      "category": "inherited_cached_metadata",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "FAIL",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "cached status: empty count recomputes no-mission",
+      "category": "inherited_cached_metadata",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "FAIL",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "new status still recomputes suspended-not-started",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "cached suspended status: changed result recomputes paused",
+      "category": "inherited_cached_metadata",
+      "expected": {
+        "baseline": "FAIL",
+        "rejected": "FAIL",
+        "candidate": "PASS"
+      }
+    },
+    {
+      "name": "metadata controls leave locks balanced",
+      "category": "preservation_control",
+      "expected": {
+        "baseline": "PASS",
+        "rejected": "PASS",
+        "candidate": "PASS"
+      }
+    }
+  ],
+  "scope": "Complete actual production methods with explicit codec, storage/uORB and serializer/transport doubles; not actual uORB/native PX4/wire/flight execution."
+}

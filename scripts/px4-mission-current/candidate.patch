@@ -1,0 +1,27 @@
+diff --git a/src/modules/mavlink/mavlink_mission.cpp b/src/modules/mavlink/mavlink_mission.cpp
+index c30d137d2e..a7d09a9c2b 100644
+--- a/src/modules/mavlink/mavlink_mission.cpp
++++ b/src/modules/mavlink/mavlink_mission.cpp
+@@ -773,6 +773,13 @@ MavlinkMissionManager::handle_mission_set_current(const mavlink_message_t *msg)
+ 			if (wpc.seq < _count[MAV_MISSION_TYPE_MISSION]) {
+ 				update_active_mission(_mission_dataman_id, _count[MAV_MISSION_TYPE_MISSION], wpc.seq, _crc32[MAV_MISSION_TYPE_MISSION]);
+ 
++				// Match the periodic sender's channel/shared-state lock order.
++				_mavlink.lock_send();
++				pthread_mutex_lock(&_shared_state_mutex);
++				send_mission_current(_current_seq);
++				pthread_mutex_unlock(&_shared_state_mutex);
++				_mavlink.unlock_send();
++
+ 			} else {
+ 				PX4_ERR("WPM: MISSION_SET_CURRENT seq=%d ERROR: not in list", wpc.seq);
+ 
+@@ -2112,7 +2119,7 @@ MavlinkMissionManager::update_mission_state()
+ 	// Get vehicle status
+ 	vehicle_status_s vehicle_status;
+ 
+-	if (!_vehicle_status_sub.update(&vehicle_status)) {
++	if (!_vehicle_status_sub.copy(&vehicle_status)) {
+ 		return;
+ 	}
+ 

@@ -1,0 +1,421 @@
+#include <cstdint>
+#include <iostream>
+#include <pthread.h>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+// Explicit private dependency doubles; this is not a PX4 or wire-codec build.
+using hrt_abstime = uint64_t;
+using dm_item_t = int;
+static constexpr uint8_t MAVLINK_IFLAG_TARGET32 = 4;
+static constexpr uint8_t MAV_COMP_ID_MISSIONPLANNER = 190;
+static constexpr uint8_t MAV_COMP_ID_ALL = 0;
+static constexpr unsigned MAV_MISSION_TYPE_MISSION = 0;
+static constexpr unsigned MAV_MISSION_TYPE_FENCE = 1;
+static constexpr unsigned MAV_MISSION_TYPE_RALLY = 2;
+static constexpr unsigned DM_KEY_MISSION_STATE = 3;
+static constexpr uint64_t MAVLINK_MISSION_PROTOCOL_TIMEOUT_DEFAULT = 5000000;
+static constexpr uint64_t MAVLINK_MISSION_RETRY_TIMEOUT_DEFAULT = 500000;
+enum MAVLINK_WPM_STATES { MAVLINK_WPM_STATE_IDLE, MAVLINK_WPM_STATE_GETLIST, MAVLINK_WPM_STATE_SENDLIST };
+static struct { uint32_t sysid{1}; uint8_t compid{1}; } mavlink_system;
+static hrt_abstime now = 100000;
+static hrt_abstime hrt_absolute_time() { return now; }
+static hrt_abstime hrt_elapsed_time(const hrt_abstime *time) { return now - *time; }
+#define PX4_DEBUG(...) do {} while (false)
+#define PX4_ERR(...) do {} while (false)
+namespace events {
+enum class Log { Error };
+static constexpr unsigned ID(const char *) { return 0; }
+template<typename... T> void send(unsigned, Log, const char *, T...) {}
+}
+struct mavlink_mission_set_current_t { uint8_t target_system; uint8_t target_component; uint16_t seq; };
+struct mavlink_message_t {
+    uint32_t sysid{245}; uint8_t compid{190}; uint8_t incompat_flags{}; uint32_t target_sysid{};
+    mavlink_mission_set_current_t request{1, 1, 1};
+};
+static void mavlink_msg_mission_set_current_decode(const mavlink_message_t *msg, mavlink_mission_set_current_t *request)
+{
+    *request = msg->request;
+}
+struct mission_s {
+    uint64_t timestamp{};
+    int mission_dataman_id{}, fence_dataman_id{}, safepoint_dataman_id{};
+    uint16_t count{}; int32_t current_seq{};
+    uint32_t mission_id{}, geofence_id{}, safe_points_id{};
+    int land_start_index{}, land_index{};
+};
+struct mavlink_mission_current_t {
+    uint16_t seq{}, total{};
+    uint8_t mission_state{}, mission_mode{};
+    uint32_t mission_id{}, fence_id{}, rally_points_id{};
+};
+static std::vector<std::string> journal;
+static std::vector<mavlink_mission_current_t> packets;
+static pthread_mutex_t *shared_mutex_address = nullptr;
+static thread_local unsigned shared_depth = 0;
+static int tracked_mutex_lock(pthread_mutex_t *mutex)
+{
+    const int result = ::pthread_mutex_lock(mutex);
+    if (result == 0 && mutex == shared_mutex_address) { ++shared_depth; }
+    return result;
+}
+static int tracked_mutex_unlock(pthread_mutex_t *mutex)
+{
+    if (mutex == shared_mutex_address) {
+        if (shared_depth == 0) { throw std::runtime_error("unbalanced shared mutex"); }
+        --shared_depth;
+    }
+    return ::pthread_mutex_unlock(mutex);
+}
+class Mavlink {
+public:
+    static constexpr int MAVLINK_MODE_IRIDIUM = 7;
+    int mode{}, errors{};
+    unsigned channel_depth{};
+    pthread_mutex_t channel{};
+    Mavlink()
+    {
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&channel, &attr);
+        pthread_mutexattr_destroy(&attr);
+    }
+    ~Mavlink() { pthread_mutex_destroy(&channel); }
+    void lock_send()
+    {
+        if (shared_depth > 0 && channel_depth == 0) { throw std::runtime_error("new shared-to-channel lock inversion"); }
+        ::pthread_mutex_lock(&channel);
+        ++channel_depth;
+    }
+    void unlock_send() { --channel_depth; ::pthread_mutex_unlock(&channel); }
+    int get_channel() const { return 0; }
+    int get_mode() const { return mode; }
+    void send_statustext_critical(const char *) { ++errors; }
+};
+static void mavlink_msg_mission_current_send_struct(int channel, const mavlink_mission_current_t *packet)
+{
+    if (channel != 0 || shared_depth != 1) { throw std::runtime_error("unprotected current snapshot"); }
+    packets.push_back(*packet);
+    journal.push_back("current");
+}
+struct DatamanDouble {
+    bool success{true}; unsigned writes{};
+    bool writeSync(unsigned, unsigned, const uint8_t *, unsigned)
+    {
+        ++writes; journal.push_back("dataman"); return success;
+    }
+};
+struct PublicationDouble {
+    unsigned publishes{}; mission_s last{};
+    void publish(const mission_s &value) { ++publishes; last = value; journal.push_back("mission"); }
+};
+struct mission_result_s {
+    int seq_current{}, seq_total{4}, seq_reached{-1};
+    bool valid{true};
+    bool finished{}, item_do_jump_changed{};
+    int item_changed_index{};
+};
+struct SubscriptionDouble {
+    bool pending{}, staged{}; mission_result_s value{}, pending_value{};
+    bool update() { const bool result = pending; pending = false; if (result && staged) { value = pending_value; staged = false; } return result; }
+    const mission_result_s &get() const { return value; }
+};
+struct LimiterDouble {
+    bool ready{};
+    bool check(uint64_t) { const bool result = ready; ready = false; return result; }
+};
+
+enum { MISSION_STATE_NO_MISSION = 1, MISSION_STATE_NOT_STARTED = 2,
+       MISSION_STATE_ACTIVE = 3, MISSION_STATE_PAUSED = 4, MISSION_STATE_COMPLETE = 5,
+       MISSION_MODE_ACTIVE = 1, MISSION_MODE_SUSPENDED = 2 };
+struct vehicle_status_s {
+    enum { NAVIGATION_STATE_AUTO_MISSION = 3, NAVIGATION_STATE_AUTO_TAKEOFF = 17,
+           NAVIGATION_STATE_AUTO_LAND = 18 };
+    int nav_state{NAVIGATION_STATE_AUTO_MISSION};
+    bool is_vtol{}; unsigned vehicle_type{};
+};
+// queue-one advertised/data boundary from Subscription/Manager/DeviceNode:
+// update requires unread data; copy can repeat the stored sample; both mark
+// this status sample read. Neither touches the mission-result subscription.
+struct VehicleStatusSubscriptionDouble {
+    bool available{}, pending{}; vehicle_status_s value{};
+    bool update(vehicle_status_s *destination) {
+        if (!available || !pending) { return false; }
+        pending = false; *destination = value; return true;
+    }
+    bool copy(vehicle_status_s *destination) {
+        if (!available) { return false; }
+        pending = false; *destination = value; return true;
+    }
+};
+namespace mavlink_cmd_params {
+static unsigned vehicle_type_bitmask(bool, unsigned) { return 1; }
+}
+
+class MavlinkMissionManager {
+public:
+    explicit MavlinkMissionManager(Mavlink &link) : _mavlink(link)
+    {
+        shared_mutex_address = &_shared_state_mutex;
+        _count[0] = 4; _count[1] = 2; _count[2] = 3;
+        _crc32[0] = 101; _crc32[1] = 202; _crc32[2] = 303;
+        _current_seq = 0; _mission_dataman_id = 0; _fence_dataman_id = 1; _safepoint_dataman_id = 2;
+        journal.clear(); packets.clear();
+    }
+    void handle_mission_set_current(const mavlink_message_t *msg);
+    void update_active_mission(dm_item_t id, uint16_t count, int32_t seq, uint32_t crc32, bool write_to_dataman = true);
+    mission_s update_active_mission_locked(dm_item_t id, uint16_t count, int32_t seq, uint32_t crc32);
+    void send_mission_current(uint16_t seq);
+    void send();
+    void update_mission_state();
+    void switch_to_idle_state() { _state = MAVLINK_WPM_STATE_IDLE; }
+    unsigned current_item_count() const { return _count[_mission_type]; }
+    uint32_t get_current_mission_type_crc() const { return _crc32[_mission_type]; }
+    void send_mission_item(unsigned, uint8_t, uint16_t) {}
+    void send_mission_item_reached(uint16_t) {}
+    void send_mission_request(unsigned, uint8_t, uint16_t) {}
+    void send_mission_count(unsigned, uint8_t, uint16_t, unsigned, uint32_t) {}
+    Mavlink &_mavlink;
+    MAVLINK_WPM_STATES _state{MAVLINK_WPM_STATE_IDLE};
+    unsigned _mission_type{};
+    uint8_t _mission_state{3}, _mission_mode{2};
+    DatamanDouble _dataman_client;
+    PublicationDouble _offboard_mission_pub;
+    SubscriptionDouble _mission_result_sub;
+    VehicleStatusSubscriptionDouble _vehicle_status_sub;
+    unsigned _vehicle_type_bitmask{};
+    LimiterDouble _slow_rate_limiter;
+    inline static pthread_mutex_t _shared_state_mutex = PTHREAD_MUTEX_INITIALIZER;
+    inline static uint16_t _count[3]{};
+    inline static uint32_t _crc32[3]{};
+    inline static int32_t _current_seq{};
+    inline static dm_item_t _mission_dataman_id{}, _fence_dataman_id{}, _safepoint_dataman_id{};
+    dm_item_t _my_mission_dataman_id{};
+    int _land_start_marker{-1}, _land_marker{-1};
+    uint64_t _time_last_recv{}, _time_last_sent{};
+    bool _last_finished{}, _transfer_in_progress{};
+    int _last_reached{-1};
+    unsigned _reached_sent_count{}, _transfer_partner_sysid{245}, _transfer_seq{};
+    uint8_t _transfer_partner_compid{190};
+    uint16_t _transfer_count{4};
+    unsigned telemetry_refreshes{};
+};
+
+#define pthread_mutex_lock tracked_mutex_lock
+#define pthread_mutex_unlock tracked_mutex_unlock
+// @@METHODS@@
+#undef pthread_mutex_lock
+#undef pthread_mutex_unlock
+
+static unsigned passed{}, failed{}, regression_failures{}, control_failures{}, invocations{};
+static void check(const std::string &name, bool condition, bool regression = false)
+{
+    if (condition) { ++passed; }
+    else { ++failed; if (regression) { ++regression_failures; } else { ++control_failures; } }
+    std::cout << (condition ? "PASS " : "FAIL ") << name << '\n';
+}
+static bool correct_packet(uint16_t seq)
+{
+    return packets.size() == 1 && packets[0].seq == seq && packets[0].total == 4
+           && packets[0].mission_id == 101 && packets[0].fence_id == 202 && packets[0].rally_points_id == 303
+           && packets[0].mission_state == 3 && packets[0].mission_mode == 2;
+}
+static void invoke(MavlinkMissionManager &manager, const mavlink_message_t &msg)
+{
+    ++invocations;
+    manager.handle_mission_set_current(&msg);
+}
+static void case_request(const std::string &name, mavlink_message_t message, bool accepted,
+                         MAVLINK_WPM_STATES state = MAVLINK_WPM_STATE_IDLE, bool storage_success = true,
+                         uint16_t count = 4)
+{
+    Mavlink link;
+    MavlinkMissionManager manager(link);
+    manager._state = state;
+    manager._dataman_client.success = storage_success;
+    manager._count[0] = count;
+    invoke(manager, message);
+    const auto seq = message.request.seq;
+    check(name + ": existing active update", manager._current_seq == (accepted ? seq : 0)
+          && manager._dataman_client.writes == unsigned(accepted)
+          && manager._offboard_mission_pub.publishes == unsigned(accepted));
+    if (accepted) {
+        check(name + ": request-caused current after mission publish",
+              correct_packet(seq) && journal == std::vector<std::string>{"dataman", "mission", "current"}, true);
+        check(name + ": existing mission identity", manager._offboard_mission_pub.last.count == count
+              && manager._offboard_mission_pub.last.mission_id == 101);
+    } else {
+        check(name + ": no new causal reply", packets.empty() && journal.empty());
+    }
+    check(name + ": locks balanced", link.channel_depth == 0 && shared_depth == 0);
+}
+int main()
+{
+    try {
+        mavlink_message_t msg;
+        case_request("new sequence", msg, true);
+        msg.request.seq = 0; case_request("same sequence", msg, true);
+        msg.request.seq = 3; case_request("last valid sequence", msg, true);
+        msg.request.seq = 1; msg.request.target_component = MAV_COMP_ID_MISSIONPLANNER;
+        case_request("mission-planner target", msg, true);
+        msg.request.target_component = MAV_COMP_ID_ALL; case_request("all-components target", msg, true);
+        msg.request.target_component = 1; msg.sysid = 1234; msg.compid = 42;
+        case_request("existing sender acceptance", msg, true);
+        msg = {}; msg.request.seq = 1; case_request("existing dataman failure semantics", msg, true, MAVLINK_WPM_STATE_IDLE, false);
+        mavlink_system.sysid = 0x12345678;
+        msg.request.target_system = 255; msg.incompat_flags = MAVLINK_IFLAG_TARGET32; msg.target_sysid = mavlink_system.sysid;
+        case_request("TARGET32 own system", msg, true);
+        mavlink_system.sysid = 1;
+        msg = {}; msg.request.target_system = 2; case_request("foreign system", msg, false);
+        msg = {}; msg.incompat_flags = MAVLINK_IFLAG_TARGET32; msg.target_sysid = 2;
+        case_request("TARGET32 foreign overrides matching payload", msg, false);
+        msg = {}; msg.request.target_component = 99; case_request("unsupported target component", msg, false);
+        msg = {}; msg.request.target_system = 0; case_request("existing zero-system rejection", msg, false);
+        msg = {}; case_request("busy upload", msg, false, MAVLINK_WPM_STATE_GETLIST);
+        case_request("busy download", msg, false, MAVLINK_WPM_STATE_SENDLIST);
+        msg.request.seq = 4; case_request("index equal count", msg, false);
+        msg.request.seq = UINT16_MAX; case_request("max invalid index", msg, false);
+        msg.request.seq = 0; case_request("empty mission", msg, false, MAVLINK_WPM_STATE_IDLE, true, 0);
+        {
+            Mavlink link;
+            MavlinkMissionManager manager(link);
+            msg = {}; msg.request.seq = 1;
+            for (unsigned i = 0; i < 4; ++i) { invoke(manager, msg); }
+            bool causal = packets.size() == 4;
+            for (const auto &packet : packets) { causal = causal && packet.seq == 1; }
+            check("four repeated requests each cause reply without periodic dispatch", causal, true);
+            check("repeated requests retain existing four updates", manager._offboard_mission_pub.publishes == 4);
+        }
+        {
+            Mavlink link;
+            MavlinkMissionManager manager(link);
+            manager._slow_rate_limiter.ready = true;
+            link.lock_send(); manager.send(); link.unlock_send();
+            check("actual periodic sender still emits", correct_packet(0));
+            packets.clear(); journal.clear();
+            msg = {}; invoke(manager, msg);
+            packets.clear(); journal.clear();
+            manager._slow_rate_limiter.ready = true;
+            link.lock_send(); manager.send(); link.unlock_send();
+            check("periodic sender remains after request", correct_packet(1));
+            packets.clear(); journal.clear();
+            manager._mission_result_sub.pending = true;
+            manager._mission_result_sub.value.seq_current = 2;
+            link.lock_send(); manager.send(); link.unlock_send();
+            check("actual mission-result sender still emits", correct_packet(2));
+            packets.clear(); journal.clear();
+            link.mode = Mavlink::MAVLINK_MODE_IRIDIUM;
+            manager._slow_rate_limiter.ready = true;
+            link.lock_send(); manager.send(); link.unlock_send();
+            check("existing high-latency periodic suppression", packets.empty());
+            check("sender locks balanced", link.channel_depth == 0 && shared_depth == 0);
+        }
+
+        {
+            Mavlink link;
+            MavlinkMissionManager manager(link);
+            manager._current_seq = 3;
+            manager._mission_result_sub.value.seq_current = 3;
+            manager._mission_result_sub.value.valid = true;
+            manager._mission_result_sub.value.finished = false;
+            manager._mission_result_sub.pending_value = manager._mission_result_sub.value;
+            manager._mission_result_sub.pending_value.finished = true;
+            manager._mission_result_sub.pending = true;
+            manager._mission_result_sub.staged = true;
+            manager._vehicle_status_sub.available = true;
+            manager._vehicle_status_sub.pending = true;
+            manager._vehicle_status_sub.value.nav_state = vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION;
+            manager._mission_state = MISSION_STATE_ACTIVE;
+            msg = {}; msg.request.seq = 3;
+            invoke(manager, msg);
+            check("request does not consume staged mission-result completion",
+                  manager._mission_result_sub.pending && manager._mission_result_sub.staged
+                  && !manager._mission_result_sub.value.finished);
+            const auto after_request = packets.size();
+            link.lock_send(); manager.send(); link.unlock_send();
+            std::cout << "COUNTEREXAMPLE packets_after_request=" << after_request
+                      << " total_packets=" << packets.size()
+                      << " last_state=" << (packets.empty() ? -1 : int(packets.back().mission_state))
+                      << " expected_complete=" << MISSION_STATE_COMPLETE
+                      << " pending_status=" << manager._vehicle_status_sub.pending
+                      << " result_finished=" << manager._mission_result_sub.value.finished << '\n';
+            check("pending completion still recomputes actual metadata",
+                  !packets.empty() && packets.back().mission_state == MISSION_STATE_COMPLETE);
+        }
+
+        {
+            Mavlink link;
+            MavlinkMissionManager manager(link);
+            manager._mission_state = 0; manager._mission_mode = 0;
+            manager._mission_result_sub.pending = true;
+            manager._mission_result_sub.staged = true;
+            manager._mission_result_sub.pending_value.finished = true;
+            msg = {}; msg.request.seq = 1;
+            invoke(manager, msg);
+            check("no initial status: do not fabricate mode or state",
+                  manager._mission_state == 0 && manager._mission_mode == 0);
+            check("no initial status: mission-result update remains pending",
+                  manager._mission_result_sub.pending && manager._mission_result_sub.staged);
+            check("no initial status: accepted update still publishes mission",
+                  manager._offboard_mission_pub.publishes == 1 && manager._current_seq == 1);
+        }
+        {
+            Mavlink link;
+            MavlinkMissionManager manager(link);
+            auto emit = [&]() {
+                packets.clear();
+                link.lock_send();
+                tracked_mutex_lock(&manager._shared_state_mutex);
+                manager.send_mission_current(manager._current_seq);
+                tracked_mutex_unlock(&manager._shared_state_mutex);
+                link.unlock_send();
+            };
+            manager._vehicle_status_sub.available = true;
+            manager._vehicle_status_sub.pending = true;
+            manager._vehicle_status_sub.value.nav_state = vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION;
+            emit();
+            check("initial advertised status computes active metadata",
+                  packets.size() == 1 && packets[0].mission_mode == MISSION_MODE_ACTIVE
+                  && packets[0].mission_state == MISSION_STATE_ACTIVE);
+            check("status read marks only its own generation read",
+                  !manager._vehicle_status_sub.pending);
+            manager._mission_result_sub.value.finished = true;
+            emit();
+            check("cached status: changed result recomputes completion",
+                  packets.size() == 1 && packets[0].mission_state == MISSION_STATE_COMPLETE);
+            manager._mission_result_sub.value.finished = false;
+            manager._mission_result_sub.value.valid = false;
+            emit();
+            check("cached status: changed result recomputes no-mission",
+                  packets.size() == 1 && packets[0].mission_state == MISSION_STATE_NO_MISSION);
+            manager._mission_result_sub.value.valid = true;
+            manager._count[0] = 0;
+            emit();
+            check("cached status: empty count recomputes no-mission",
+                  packets.size() == 1 && packets[0].mission_state == MISSION_STATE_NO_MISSION);
+            manager._count[0] = 4;
+            manager._mission_result_sub.value.seq_current = 0;
+            manager._mission_result_sub.value.seq_reached = -1;
+            manager._vehicle_status_sub.value.nav_state = 0;
+            manager._vehicle_status_sub.pending = true;
+            emit();
+            check("new status still recomputes suspended-not-started",
+                  packets.size() == 1 && packets[0].mission_mode == MISSION_MODE_SUSPENDED
+                  && packets[0].mission_state == MISSION_STATE_NOT_STARTED);
+            manager._mission_result_sub.value.seq_reached = 1;
+            emit();
+            check("cached suspended status: changed result recomputes paused",
+                  packets.size() == 1 && packets[0].mission_state == MISSION_STATE_PAUSED);
+            check("metadata controls leave locks balanced", link.channel_depth == 0 && shared_depth == 0);
+        }
+    } catch (const std::exception &error) {
+        std::cerr << "DIAGNOSTIC ERROR: " << error.what() << '\n';
+        return 2;
+    }
+    std::cout << "RESULT {\"passed\":" << passed << ",\"failed\":" << failed
+              << ",\"regression_failures\":" << regression_failures << ",\"control_failures\":" << control_failures
+              << ",\"handler_invocations\":" << invocations << "}\n";
+    return failed == 0 ? 0 : 1;
+}

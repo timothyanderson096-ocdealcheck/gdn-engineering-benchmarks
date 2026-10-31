@@ -1,0 +1,82 @@
+name: PX4 event-range native wire evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/px4-event-range.yml
+      - scripts/px4-event-range/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: px4-event-range-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  event-range:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned build Python
+        id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set isolated paths
+        run: |
+          echo "PX4_EVENT_SOURCE=$RUNNER_TEMP/px4-event-source" >> "$GITHUB_ENV"
+          echo "PX4_EVENT_EVIDENCE=$RUNNER_TEMP/px4-event-evidence" >> "$GITHUB_ENV"
+      - name: Restore exact unmodified baseline
+        id: source
+        run: python scripts/px4-event-range/validate.py prepare --source "$PX4_EVENT_SOURCE" --evidence "$PX4_EVENT_EVIDENCE"
+      - name: Set up recorded native environment
+        id: setup
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/px4-event-range/validate.py setup --source "$PX4_EVENT_SOURCE" --evidence "$PX4_EVENT_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Reproduce baseline on actual native loopback MAVLink
+        id: baseline
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: python scripts/px4-event-range/validate.py baseline --source "$PX4_EVENT_SOURCE" --evidence "$PX4_EVENT_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Verify frozen candidate, actual format/native tests/SITL and same wire oracle
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
+        run: python scripts/px4-event-range/validate.py candidate --source "$PX4_EVENT_SOURCE" --evidence "$PX4_EVENT_EVIDENCE" --python '${{ steps.python.outputs.python-path }}'
+      - name: Report actual wire outcomes and remaining gates
+        if: always()
+        run: python scripts/px4-event-range/validate.py report --source "$PX4_EVENT_SOURCE" --evidence "$PX4_EVENT_EVIDENCE"
+      - name: Retain exact source, all raw datagrams/responses, native logs and CTest XML
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: px4-event-range-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/px4-event-evidence/*.json
+            ${{ runner.temp }}/px4-event-evidence/*.log
+            ${{ runner.temp }}/px4-event-evidence/summary.md
+            ${{ runner.temp }}/px4-event-evidence/baseline/*.json
+            ${{ runner.temp }}/px4-event-evidence/baseline/*.log
+            ${{ runner.temp }}/px4-event-evidence/baseline/wire/*.json
+            ${{ runner.temp }}/px4-event-evidence/baseline/wire/*.log
+            ${{ runner.temp }}/px4-event-evidence/baseline/wire/*.jsonl
+            ${{ runner.temp }}/px4-event-evidence/baseline/wire/*.udp
+            ${{ runner.temp }}/px4-event-evidence/candidate/*.json
+            ${{ runner.temp }}/px4-event-evidence/candidate/*.log
+            ${{ runner.temp }}/px4-event-evidence/candidate/*.xml
+            ${{ runner.temp }}/px4-event-evidence/candidate/wire/*.json
+            ${{ runner.temp }}/px4-event-evidence/candidate/wire/*.log
+            ${{ runner.temp }}/px4-event-evidence/candidate/wire/*.jsonl
+            ${{ runner.temp }}/px4-event-evidence/candidate/wire/*.udp
