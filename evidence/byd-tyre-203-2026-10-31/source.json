@@ -1,0 +1,29 @@
+{
+  "stage": "source",
+  "status": "PASS",
+  "exit_code": 0,
+  "repository": "https://github.com/jkaberg/hass-byd-vehicle.git",
+  "base": "e8d660b67c51dd848a15b8410618927a04993fb8",
+  "patch_sha256": "a2ba942eca0b5a8432d2b58819c48169978f2f89bbee0c237c0d7e9288090700",
+  "candidate_tree": "fe9967be610d088441a99a1d2d403f5dd43f9a71",
+  "candidate_files": {
+    "custom_components/byd_vehicle/binary_sensor.py": {
+      "git_blob": "741b1d2a8185b38f5ccf692ce0f86cf5f9592148",
+      "sha256": "f8a614960a2523958581aad8d339185472d85c329ffcfbfd4ce887e43db2881b"
+    },
+    "tests/test_tpms_replay.py": {
+      "git_blob": "aad30769274e7a0427744b2640209ae154c888e1",
+      "sha256": "a2bcf4401a6572fb2d86d17e81b8c0a60fd8137edf62c5c23a96dc3ff0fbcbaa"
+    },
+    "tests/test_configured_tpms.py": {
+      "git_blob": "7501ce40a54fcb88b28aa7b95696782c0db53557",
+      "sha256": "be244d16dd073687d687c3ee34f8c976f48ae7091c81c6fbc00a1c2963d49450"
+    },
+    "tests/test_tpms_started.py": {
+      "git_blob": "eff5cde5b2dc63927b87c3b5d0cea4b9338464f8",
+      "sha256": "989dc49702d836526fb6bcd3d3c5d7de2a26ac5c45dc9dc248b338e86a9af49a"
+    }
+  },
+  "cloud_io": false,
+  "physical_vehicle": false
+}

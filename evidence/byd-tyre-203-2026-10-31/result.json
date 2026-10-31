@@ -1,0 +1,746 @@
+{
+  "status": "CANDIDATE_GATES_PASSED",
+  "base": "e8d660b67c51dd848a15b8410618927a04993fb8",
+  "patch_sha256": "a2ba942eca0b5a8432d2b58819c48169978f2f89bbee0c237c0d7e9288090700",
+  "candidate_repository": "timothyanderson096-ocdealcheck/hass-byd-vehicle",
+  "candidate_sha": "8f4abddeedadf23b2831a40ee55c0dd9088844d3",
+  "runner_repository": "timothyanderson096-ocdealcheck/gdn-engineering-benchmarks",
+  "hassfest_image": "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc",
+  "hacs_image": "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25",
+  "stages": {
+    "source": {
+      "stage": "source",
+      "status": "PASS",
+      "exit_code": 0,
+      "repository": "https://github.com/jkaberg/hass-byd-vehicle.git",
+      "base": "e8d660b67c51dd848a15b8410618927a04993fb8",
+      "patch_sha256": "a2ba942eca0b5a8432d2b58819c48169978f2f89bbee0c237c0d7e9288090700",
+      "candidate_tree": "fe9967be610d088441a99a1d2d403f5dd43f9a71",
+      "candidate_files": {
+        "custom_components/byd_vehicle/binary_sensor.py": {
+          "git_blob": "741b1d2a8185b38f5ccf692ce0f86cf5f9592148",
+          "sha256": "f8a614960a2523958581aad8d339185472d85c329ffcfbfd4ce887e43db2881b"
+        },
+        "tests/test_tpms_replay.py": {
+          "git_blob": "aad30769274e7a0427744b2640209ae154c888e1",
+          "sha256": "a2bcf4401a6572fb2d86d17e81b8c0a60fd8137edf62c5c23a96dc3ff0fbcbaa"
+        },
+        "tests/test_configured_tpms.py": {
+          "git_blob": "7501ce40a54fcb88b28aa7b95696782c0db53557",
+          "sha256": "be244d16dd073687d687c3ee34f8c976f48ae7091c81c6fbc00a1c2963d49450"
+        },
+        "tests/test_tpms_started.py": {
+          "git_blob": "eff5cde5b2dc63927b87c3b5d0cea4b9338464f8",
+          "sha256": "989dc49702d836526fb6bcd3d3c5d7de2a26ac5c45dc9dc248b338e86a9af49a"
+        }
+      },
+      "cloud_io": false,
+      "physical_vehicle": false
+    },
+    "native-version": {
+      "stage": "native-version",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.02,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-c",
+        "import sys; print(sys.version); assert sys.version_info[:3] == (3, 14, 8)"
+      ],
+      "log": "native-version.log"
+    },
+    "native-venv": {
+      "stage": "native-venv",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.12,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-m",
+        "venv",
+        "/home/runner/work/_temp/tyre-source/native-venv"
+      ],
+      "log": "native-venv.log"
+    },
+    "native-install": {
+      "stage": "native-install",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 45.43,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pip",
+        "install",
+        "homeassistant==2026.10.2",
+        "pybyd==0.0.79",
+        "pytest==9.2.0",
+        "pytest-asyncio==1.4.0"
+      ],
+      "log": "native-install.log"
+    },
+    "native-dependencies": {
+      "stage": "native-dependencies",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.36,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "log": "native-dependencies.log"
+    },
+    "native-packages": {
+      "stage": "native-packages",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.31,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pip",
+        "freeze"
+      ],
+      "log": "native-packages.log"
+    },
+    "native-pins": {
+      "stage": "native-pins",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.11,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-c",
+        "from importlib.metadata import version; expected={'homeassistant': '2026.10.2', 'pybyd': '0.0.79', 'pytest': '9.2.0', 'pytest-asyncio': '1.4.0'}; actual={name:version(name) for name in expected}; print(actual); assert actual == expected"
+      ],
+      "log": "native-pins.log"
+    },
+    "baseline-native": {
+      "stage": "baseline-native",
+      "status": "PASS",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "timed_out": false,
+      "duration_seconds": 2.87,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/baseline-native.xml",
+        "tests/test_tpms_replay.py"
+      ],
+      "log": "baseline-native.log"
+    },
+    "baseline-native-counts": {
+      "stage": "baseline-native-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 14,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 6,
+      "expected_failure_messages": {
+        "test_fault_clears_and_recurs[left_front_tire_status]": "AssertionError: assert 'on' == 'off'",
+        "test_fault_clears_and_recurs[right_front_tire_status]": "AssertionError: assert 'on' == 'off'",
+        "test_fault_clears_and_recurs[left_rear_tire_status]": "AssertionError: assert 'on' == 'off'",
+        "test_fault_clears_and_recurs[right_rear_tire_status]": "AssertionError: assert 'on' == 'off'",
+        "test_initial_fault_clears": "AssertionError: assert 'unknown' == 'off'",
+        "test_history_is_per_vehicle": "AssertionError: assert 'on' == 'off'",
+        "test_restore_and_reload[partial]": "AssertionError: assert 'on' == 'off'",
+        "test_restore_and_reload[healthy]": "AssertionError: assert 'on' == 'off'"
+      }
+    },
+    "baseline-configured": {
+      "stage": "baseline-configured",
+      "status": "PASS",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "timed_out": false,
+      "duration_seconds": 3.87,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/baseline-configured.xml",
+        "tests/test_configured_tpms.py"
+      ],
+      "log": "baseline-configured.log"
+    },
+    "baseline-configured-counts": {
+      "stage": "baseline-configured-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 3,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 0,
+      "expected_failure_messages": {
+        "test_configured_all_wheels_and_other_vehicle": "AssertionError: assert ['on', 'on', 'off', 'on'] == ['off', 'off', 'off', 'off']",
+        "test_configured_reload_and_partial": "AssertionError: assert 'on' == 'off'",
+        "test_configured_startup_fault_first_healthy[True]": "AssertionError: assert 'unknown' == 'off'"
+      }
+    },
+    "baseline-started": {
+      "stage": "baseline-started",
+      "status": "PASS",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "timed_out": false,
+      "duration_seconds": 3.37,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/baseline-started.xml",
+        "tests/test_tpms_started.py"
+      ],
+      "log": "baseline-started.log"
+    },
+    "baseline-started-counts": {
+      "stage": "baseline-started-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 0,
+      "expected_failure_messages": {
+        "test_started_service_warning_clears": "AssertionError: assert ['on', 'off', 'off', 'off'] == ['off', 'off', 'off', 'off']"
+      }
+    },
+    "baseline-existing": {
+      "stage": "baseline-existing",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 2.12,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/baseline-existing.xml",
+        "tests/test_legacy_consumption_sensors.py"
+      ],
+      "log": "baseline-existing.log"
+    },
+    "baseline-existing-counts": {
+      "stage": "baseline-existing-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 8,
+      "expected_failure_messages": {}
+    },
+    "candidate-native": {
+      "stage": "candidate-native",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 2.17,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/candidate-native.xml",
+        "tests/test_tpms_replay.py"
+      ],
+      "log": "candidate-native.log"
+    },
+    "candidate-native-counts": {
+      "stage": "candidate-native-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 14,
+      "expected_failure_messages": {}
+    },
+    "candidate-configured": {
+      "stage": "candidate-configured",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.92,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/candidate-configured.xml",
+        "tests/test_configured_tpms.py"
+      ],
+      "log": "candidate-configured.log"
+    },
+    "candidate-configured-counts": {
+      "stage": "candidate-configured-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 3,
+      "expected_failure_messages": {}
+    },
+    "candidate-started": {
+      "stage": "candidate-started",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.37,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/candidate-started.xml",
+        "tests/test_tpms_started.py"
+      ],
+      "log": "candidate-started.log"
+    },
+    "candidate-started-counts": {
+      "stage": "candidate-started-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 1,
+      "expected_failure_messages": {}
+    },
+    "candidate-existing": {
+      "stage": "candidate-existing",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 2.07,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/native-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--log-cli-level=DEBUG",
+        "--junitxml",
+        "/home/runner/work/_temp/tyre-evidence/candidate-existing.xml",
+        "tests/test_legacy_consumption_sensors.py"
+      ],
+      "log": "candidate-existing.log"
+    },
+    "candidate-existing-counts": {
+      "stage": "candidate-existing-counts",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passes": 8,
+      "expected_failure_messages": {}
+    },
+    "lint-version": {
+      "stage": "lint-version",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.02,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "-c",
+        "import sys; print(sys.version); assert sys.version_info[:3] == (3, 11, 15)"
+      ],
+      "log": "lint-version.log"
+    },
+    "lint-venv": {
+      "stage": "lint-venv",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.57,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "-m",
+        "venv",
+        "/home/runner/work/_temp/tyre-source/lint-venv"
+      ],
+      "log": "lint-venv.log"
+    },
+    "lint-install": {
+      "stage": "lint-install",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 4.47,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "pip",
+        "install",
+        "ruff==0.17.3",
+        "black==26.10.1",
+        "mypy==2.4.1"
+      ],
+      "log": "lint-install.log"
+    },
+    "lint-dependencies": {
+      "stage": "lint-dependencies",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.42,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "log": "lint-dependencies.log"
+    },
+    "lint-packages": {
+      "stage": "lint-packages",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.36,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "pip",
+        "freeze"
+      ],
+      "log": "lint-packages.log"
+    },
+    "lint-pins": {
+      "stage": "lint-pins",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.06,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-c",
+        "from importlib.metadata import version; expected={'ruff': '0.17.3', 'black': '26.10.1', 'mypy': '2.4.1'}; actual={name:version(name) for name in expected}; print(actual); assert actual == expected"
+      ],
+      "log": "lint-pins.log"
+    },
+    "ruff": {
+      "stage": "ruff",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.06,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "log": "ruff.log"
+    },
+    "black": {
+      "stage": "black",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 1.32,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "black",
+        "--check",
+        "."
+      ],
+      "log": "black.log"
+    },
+    "fixture-ruff": {
+      "stage": "fixture-ruff",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.03,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "tests/test_tpms_replay.py",
+        "tests/test_configured_tpms.py",
+        "tests/test_tpms_started.py"
+      ],
+      "log": "fixture-ruff.log"
+    },
+    "fixture-black": {
+      "stage": "fixture-black",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.31,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "black",
+        "--check",
+        "tests/test_tpms_replay.py",
+        "tests/test_configured_tpms.py",
+        "tests/test_tpms_started.py"
+      ],
+      "log": "fixture-black.log"
+    },
+    "mypy": {
+      "stage": "mypy",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 1.42,
+      "command": [
+        "/home/runner/work/_temp/tyre-source/lint-venv/bin/python",
+        "-m",
+        "mypy",
+        "."
+      ],
+      "log": "mypy.log"
+    },
+    "docker-probe": {
+      "stage": "docker-probe",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.37,
+      "command": [
+        "docker",
+        "info"
+      ],
+      "log": "docker-probe.log"
+    },
+    "hassfest-pull": {
+      "stage": "hassfest-pull",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 10.24,
+      "command": [
+        "docker",
+        "pull",
+        "--platform",
+        "linux/amd64",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest-pull.log"
+    },
+    "hassfest-image": {
+      "stage": "hassfest-image",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.03,
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest-image.log"
+    },
+    "hassfest": {
+      "stage": "hassfest",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 4.57,
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--platform",
+        "linux/amd64",
+        "--mount",
+        "type=bind,source=/home/runner/work/_temp/tyre-source/candidate,target=/github/workspace",
+        "--workdir",
+        "/github/workspace",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest.log"
+    },
+    "hacs-target": {
+      "stage": "hacs-target",
+      "status": "PASS",
+      "exit_code": 0,
+      "repository": "timothyanderson096-ocdealcheck/hass-byd-vehicle",
+      "candidate_sha": "8f4abddeedadf23b2831a40ee55c0dd9088844d3",
+      "parent_sha": "e8d660b67c51dd848a15b8410618927a04993fb8",
+      "tree_sha": "fe9967be610d088441a99a1d2d403f5dd43f9a71",
+      "public": true,
+      "proper_fork": true,
+      "metadata": {
+        "description": "Custom HASS integration for BYD vehicles.",
+        "archived": false,
+        "has_issues": true,
+        "license": {
+          "key": "mit",
+          "name": "MIT License",
+          "spdx_id": "MIT",
+          "url": "https://api.github.com/licenses/mit",
+          "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "topics": [
+          "byd",
+          "hacs",
+          "home-assistant"
+        ]
+      }
+    },
+    "hacs-pull": {
+      "stage": "hacs-pull",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 30.83,
+      "command": [
+        "docker",
+        "pull",
+        "--platform",
+        "linux/amd64",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs-pull.log"
+    },
+    "hacs-image": {
+      "stage": "hacs-image",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.03,
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs-image.log"
+    },
+    "hacs": {
+      "stage": "hacs",
+      "status": "PASS",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 8.89,
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--platform",
+        "linux/amd64",
+        "--env",
+        "INPUT_GITHUB_TOKEN",
+        "--env",
+        "INPUT_REPOSITORY",
+        "--env",
+        "GITHUB_REPOSITORY",
+        "--env",
+        "REPOSITORY_REF",
+        "--env",
+        "INPUT_CATEGORY",
+        "--env",
+        "INPUT_COMMENT",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs.log"
+    }
+  },
+  "limits": [
+    "Synthetic BYD authentication/read endpoints and HTTP session factory; no real cloud or vehicle",
+    "Real HA core startup occurs after configured entry setup; no frontend/HTTP server or config UI",
+    "No long-duration scheduled polling, MQTT or encrypted manufacturer transport validation",
+    "Baseline pytest exit 1 is expected only with exact listed defect failure messages; all setup errors fail validation",
+    "Passing this job proposes evidence for review; maintainer acceptance is separate"
+  ]
+}

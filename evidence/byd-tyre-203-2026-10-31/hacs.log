@@ -1,0 +1,86 @@
+::DEBUG:: Using selector: EpollSelector
+::INFO:: Category: integration
+::INFO:: Repository: timothyanderson096-ocdealcheck/hass-byd-vehicle@8f4abddeedadf23b2831a40ee55c0dd9088844d3
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> Checking repository.
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> Running checks against 8f4abddeedadf23b2831a40ee55c0dd9088844d3
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> Getting custom_components/byd_vehicle/manifest.json for ref=8f4abddeedadf23b2831a40ee55c0dd9088844d3
+::INFO:: <Validation issues> completed
+::INFO:: <Validation information> completed
+::INFO:: <Validation topics> completed
+::INFO:: <Validation description> completed
+::INFO:: <Validation archived> completed
+::DEBUG:: The repository has a popular OSI-approved license: MIT License
+::INFO:: <Validation license> completed
+::INFO:: <Validation integration_manifest> completed
+::DEBUG:: The repository contains brands assets at custom_components/byd_vehicle/brand/icon.png
+::INFO:: <Validation brands> completed
+::WARNING:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> The integration manifest has no categories, see https://contributors.home-assistant.io/core/integrations/categories/
+::INFO:: <Validation integration_categories> completed
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> Getting hacs.json for version=8f4abddeedadf23b2831a40ee55c0dd9088844d3
+::DEBUG:: Trying to download https://raw.githubusercontent.com/timothyanderson096-ocdealcheck/hass-byd-vehicle/8f4abddeedadf23b2831a40ee55c0dd9088844d3/hacs.json
+::INFO:: <Validation hacsjson> completed
+::INFO:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> All (10) checks passed
+::INFO:: <Integration timothyanderson096-ocdealcheck/hass-byd-vehicle> Validation completed
+::group::data
+{
+    "data": {
+        "archived": false,
+        "authors": [
+            "@jkaberg"
+        ],
+        "category": "integration",
+        "config_flow": true,
+        "default_branch": "main",
+        "description": "Custom HASS integration for BYD vehicles.",
+        "domain": "byd_vehicle",
+        "downloads": 0,
+        "etag_repository": "W/\"930ee327af0f77c5107fb878ced17a981775546880f365e82742fda08c3e1b9f\"",
+        "etag_releases": null,
+        "file_name": "",
+        "first_install": false,
+        "full_name": "timothyanderson096-ocdealcheck/hass-byd-vehicle",
+        "hide": false,
+        "has_issues": true,
+        "id": "1440654646",
+        "installed_commit": null,
+        "installed_version": null,
+        "installed": false,
+        "last_commit": null,
+        "last_updated": "2026-10-31T08:24:58Z",
+        "last_version": null,
+        "manifest_name": "BYD Vehicle",
+        "new": true,
+        "open_issues": 0,
+        "prerelease": null,
+        "published_tags": [],
+        "releases": false,
+        "selected_tag": "8f4abddeedadf23b2831a40ee55c0dd9088844d3",
+        "show_beta": false,
+        "stargazers_count": 0,
+        "topics": [
+            "byd",
+            "hacs",
+            "home-assistant"
+        ]
+    },
+    "manifest": {
+        "content_in_root": false,
+        "country": [],
+        "filename": null,
+        "hacs": null,
+        "hide_default_branch": false,
+        "homeassistant": null,
+        "manifest": {
+            "name": "BYD Vehicle",
+            "render_readme": true
+        },
+        "name": "BYD Vehicle",
+        "persistent_directory": null,
+        "render_readme": true,
+        "zip_release": false
+    },
+    "release": null,
+    "category": "integration",
+    "ref": "8f4abddeedadf23b2831a40ee55c0dd9088844d3"
+}
+::endgroup::

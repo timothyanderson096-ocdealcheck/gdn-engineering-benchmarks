@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="2.889" timestamp="2026-10-31T08:27:10.100238+00:00" hostname="runnervm48cm3"><testcase classname="tests.test_configured_tpms" name="test_configured_all_wheels_and_other_vehicle" time="0.300"><failure message="AssertionError: assert ['on', 'on', 'off', 'on'] == ['off', 'off', 'off', 'off']&#10;  &#10;  At index 0 diff: 'on' != 'off'&#10;  &#10;  Full diff: (-: missing in left side, +: extra in left side)&#10;    [&#10;  +     'on',&#10;  +     'on',&#10;        'off',&#10;  -     'off',&#10;  ?       ^^&#10;  +     'on',&#10;  ?       ^&#10;  -     'off',&#10;  -     'off',&#10;    ]">configured = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;ConfigEntry entry_id=01M68H3SVRPFQSF185M3Z9WMQS version=3 domain=byd_vehicle title=Synt...sor.synthetic_1_rear_left_tire_status', 'right_rear_tire_status': 'binary_sensor.synthetic_1_rear_right_tire_status'}})
+
+    @pytest.mark.asyncio
+    async def test_configured_all_wheels_and_other_vehicle(configured):
+        hass, _entry, _cloud, ids = configured
+        for vin in VINS:
+            assert {hass.states.get(eid).state for eid in ids[vin].values()} == {"unknown"}
+        fault = {**HEALTHY, ALIASES[0]: 1, ALIASES[1]: 1, ALIASES[3]: 1}
+        result = await refresh(configured, VINS[0], fault)
+        assert list(result.values()) == ["on", "on", "off", "on"]
+        assert {hass.states.get(eid).state for eid in ids[VINS[1]].values()} == {"unknown"}
+        result = await refresh(configured, VINS[0], HEALTHY)
+&gt;       assert list(result.values()) == ["off"] * 4
+E       AssertionError: assert ['on', 'on', 'off', 'on'] == ['off', 'off', 'off', 'off']
+E         
+E         At index 0 diff: 'on' != 'off'
+E         
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           [
+E         +     'on',
+E         +     'on',
+E               'off',
+E         -     'off',
+E         ?       ^^
+E         +     'on',
+E         ?       ^
+E         -     'off',
+E         -     'off',
+E           ]
+
+tests/test_configured_tpms.py:226: AssertionError</failure></testcase><testcase classname="tests.test_configured_tpms" name="test_configured_reload_and_partial" time="0.262"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">configured = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;ConfigEntry entry_id=01M68H3T89W3P2V913TPMDBDRE version=3 domain=byd_vehicle title=Synt...sor.synthetic_1_rear_left_tire_status', 'right_rear_tire_status': 'binary_sensor.synthetic_1_rear_right_tire_status'}})
+
+    @pytest.mark.asyncio
+    async def test_configured_reload_and_partial(configured):
+        hass, entry, cloud, ids = configured
+        await refresh(configured, VINS[0], {**HEALTHY, ALIASES[0]: 1})
+        # Missing and negative sentinel fields pass through the actual pyBYD state engine.
+        result = await refresh(configured, VINS[0], {ALIASES[0]: -1})
+        assert result[CORNERS[0]] == "on"
+        cloud.payloads[VINS[0]] = {ALIASES[0]: -1}
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+        assert hass.states.get(ids[VINS[0]][CORNERS[0]]).state == "on"
+        result = await refresh(configured, VINS[0], HEALTHY)
+&gt;       assert result[CORNERS[0]] == "off"
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_configured_tpms.py:246: AssertionError</failure></testcase><testcase classname="tests.test_configured_tpms" name="test_configured_startup_fault_first_healthy[True]" time="0.200"><failure message="AssertionError: assert 'unknown' == 'off'&#10;  &#10;  - off&#10;  + unknown">configured = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;ConfigEntry entry_id=01M68H3TGQ96RWYGQSYS413W23 version=3 domain=byd_vehicle title=Synt...sor.synthetic_1_rear_left_tire_status', 'right_rear_tire_status': 'binary_sensor.synthetic_1_rear_right_tire_status'}})
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("configured", [True], indirect=True)
+    async def test_configured_startup_fault_first_healthy(configured):
+        hass, _entry, _cloud, ids = configured
+        assert hass.states.get(ids[VINS[0]][CORNERS[0]]).state == "on"
+        result = await refresh(configured, VINS[0], HEALTHY)
+&gt;       assert result[CORNERS[0]] == "off"
+E       AssertionError: assert 'unknown' == 'off'
+E         
+E         - off
+E         + unknown
+
+tests/test_configured_tpms.py:259: AssertionError</failure></testcase></testsuite></testsuites>

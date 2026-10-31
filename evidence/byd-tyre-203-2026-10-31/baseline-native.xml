@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="14" time="1.741" timestamp="2026-10-31T08:27:07.628018+00:00" hostname="runnervm48cm3"><testcase classname="tests.test_tpms_replay" name="test_fault_clears_and_recurs[left_front_tire_status]" time="0.012"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0d096a0&gt;)
+corner = 'left_front_tire_status'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("corner", CORNERS)
+    async def test_fault_clears_and_recurs(runtime, corner):
+        item = await add_sensor(runtime, corner)
+        await publish(runtime, item, HEALTHY, STATE_UNKNOWN)
+        await publish(runtime, item, {**HEALTHY, corner: 1}, STATE_ON)
+&gt;       await publish(runtime, item, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0d096a0&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_left_front_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUpd...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_fault_clears_and_recurs[right_front_tire_status]" time="0.006"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0d0ed50&gt;)
+corner = 'right_front_tire_status'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("corner", CORNERS)
+    async def test_fault_clears_and_recurs(runtime, corner):
+        item = await add_sensor(runtime, corner)
+        await publish(runtime, item, HEALTHY, STATE_UNKNOWN)
+        await publish(runtime, item, {**HEALTHY, corner: 1}, STATE_ON)
+&gt;       await publish(runtime, item, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0d0ed50&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_right_front_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUp...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_fault_clears_and_recurs[left_rear_tire_status]" time="0.006"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcd9a90&gt;)
+corner = 'left_rear_tire_status'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("corner", CORNERS)
+    async def test_fault_clears_and_recurs(runtime, corner):
+        item = await add_sensor(runtime, corner)
+        await publish(runtime, item, HEALTHY, STATE_UNKNOWN)
+        await publish(runtime, item, {**HEALTHY, corner: 1}, STATE_ON)
+&gt;       await publish(runtime, item, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcd9a90&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_left_rear_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUpda...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_fault_clears_and_recurs[right_rear_tire_status]" time="0.005"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0e67a80&gt;)
+corner = 'right_rear_tire_status'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("corner", CORNERS)
+    async def test_fault_clears_and_recurs(runtime, corner):
+        item = await add_sensor(runtime, corner)
+        await publish(runtime, item, HEALTHY, STATE_UNKNOWN)
+        await publish(runtime, item, {**HEALTHY, corner: 1}, STATE_ON)
+&gt;       await publish(runtime, item, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13f0e67a80&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_right_rear_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUpd...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_initial_fault_clears" time="0.005"><failure message="AssertionError: assert 'unknown' == 'off'&#10;  &#10;  - off&#10;  + unknown">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcca3f0&gt;)
+
+    @pytest.mark.asyncio
+    async def test_initial_fault_clears(runtime):
+        item = await add_sensor(runtime, CORNERS[0], initial={**HEALTHY, CORNERS[0]: 1})
+        hass, _ = runtime
+        assert hass.states.get(item[0].entity_id).state == STATE_ON
+&gt;       await publish(runtime, item, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcca3f0&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_left_front_tire_status=unknown&gt;, &lt;homeassistant.helpers.update_coordinator.Da...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'unknown' == 'off'
+E         
+E         - off
+E         + unknown
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_partial_or_negative_does_not_clear[left_front_tire_status]" time="0.006" /><testcase classname="tests.test_tpms_replay" name="test_partial_or_negative_does_not_clear[right_front_tire_status]" time="0.005" /><testcase classname="tests.test_tpms_replay" name="test_partial_or_negative_does_not_clear[left_rear_tire_status]" time="0.005" /><testcase classname="tests.test_tpms_replay" name="test_partial_or_negative_does_not_clear[right_rear_tire_status]" time="0.006" /><testcase classname="tests.test_tpms_replay" name="test_partial_or_negative_does_not_clear[tirepressure_system]" time="0.005" /><testcase classname="tests.test_tpms_replay" name="test_history_is_per_vehicle" time="0.006"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcf5d60&gt;)
+
+    @pytest.mark.asyncio
+    async def test_history_is_per_vehicle(runtime):
+        first = await add_sensor(runtime, CORNERS[0])
+        second = await add_sensor(runtime, CORNERS[0], vin="TEST0000000000002")
+        await publish(runtime, first, {**HEALTHY, CORNERS[0]: 1}, STATE_ON)
+        await publish(runtime, second, HEALTHY, STATE_UNKNOWN)
+&gt;       await publish(runtime, first, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13efcf5d60&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_left_front_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUpd...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_restore_and_reload[partial]" time="0.007"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13eeb40320&gt;)
+initial = {}
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("initial", [{}, HEALTHY], ids=["partial", "healthy"])
+    async def test_restore_and_reload(runtime, initial):
+        item = await add_sensor(runtime, CORNERS[0])
+        await publish(runtime, item, {**HEALTHY, CORNERS[0]: 1}, STATE_ON)
+        await item[0].async_remove()
+        restored = await add_sensor(runtime, CORNERS[0], initial=initial)
+        hass, _ = runtime
+        expected = STATE_OFF if initial == HEALTHY else STATE_ON
+        assert hass.states.get(restored[0].entity_id).state == expected
+&gt;       await publish(runtime, restored, HEALTHY, STATE_OFF)
+
+tests/test_tpms_replay.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13eeb40320&gt;)
+item = (&lt;entity binary_sensor.test0000000000001_left_front_tire_status=on&gt;, &lt;homeassistant.helpers.update_coordinator.DataUpd...ate='', auto_bought_time=None, yun_active_time=None, empower_id=None, range_detail_list=[], vehicle_fun_learn_info={}))
+payload = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+expected = 'off'
+
+    async def publish(runtime, item, payload, expected):
+        hass, _ = runtime
+        sensor, coordinator, vehicle = item
+        coordinator.async_set_updated_data(
+            VehicleSnapshot(
+                vehicle=vehicle,
+                realtime=(
+                    VehicleRealtimeData.model_validate(payload)
+                    if payload is not None
+                    else None
+                ),
+            )
+        )
+        await hass.async_block_till_done()
+        state = hass.states.get(sensor.entity_id)
+        assert state is not None
+        print(
+            f"{sensor.entity_id}: payload={payload!r}; "
+            f"state={state.state}; expected={expected}"
+        )
+&gt;       assert state.state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:115: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_restore_and_reload[healthy]" time="0.006"><failure message="AssertionError: assert 'on' == 'off'&#10;  &#10;  - off&#10;  + on">runtime = (&lt;HomeAssistant NOT_RUNNING&gt;, &lt;homeassistant.helpers.entity_component.EntityComponent object at 0x7f13eeb23310&gt;)
+initial = {'left_front_tire_status': 0, 'right_front_tire_status': 0, 'left_rear_tire_status': 0, 'right_rear_tire_status': 0, ...}
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("initial", [{}, HEALTHY], ids=["partial", "healthy"])
+    async def test_restore_and_reload(runtime, initial):
+        item = await add_sensor(runtime, CORNERS[0])
+        await publish(runtime, item, {**HEALTHY, CORNERS[0]: 1}, STATE_ON)
+        await item[0].async_remove()
+        restored = await add_sensor(runtime, CORNERS[0], initial=initial)
+        hass, _ = runtime
+        expected = STATE_OFF if initial == HEALTHY else STATE_ON
+&gt;       assert hass.states.get(restored[0].entity_id).state == expected
+E       AssertionError: assert 'on' == 'off'
+E         
+E         - off
+E         + on
+
+tests/test_tpms_replay.py:170: AssertionError</failure></testcase><testcase classname="tests.test_tpms_replay" name="test_unrelated_warning_cache" time="0.005" /></testsuite></testsuites>

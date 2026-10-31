@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="2.370" timestamp="2026-10-31T08:27:13.975541+00:00" hostname="runnervm48cm3"><testcase classname="tests.test_tpms_started" name="test_started_service_warning_clears" time="0.274"><failure message="AssertionError: assert ['on', 'off', 'off', 'off'] == ['off', 'off', 'off', 'off']&#10;  &#10;  At index 0 diff: 'on' != 'off'&#10;  &#10;  Full diff: (-: missing in left side, +: extra in left side)&#10;    [&#10;  -     'off',&#10;  ?       ^^&#10;  +     'on',&#10;  ?       ^&#10;        'off',&#10;        'off',&#10;        'off',&#10;    ]">configured = (&lt;HomeAssistant RUNNING&gt;, &lt;ConfigEntry entry_id=01M68H3XMF71VCCCKRDQX0FQD8 version=3 domain=byd_vehicle title=Syntheti...sor.synthetic_1_rear_left_tire_status', 'right_rear_tire_status': 'binary_sensor.synthetic_1_rear_right_tire_status'}})
+
+    @pytest.mark.asyncio
+    async def test_started_service_warning_clears(configured):
+        """A service refresh clears the warning while a real HA core is running."""
+        hass, entry, cloud, ids = configured
+        started = []
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, started.append)
+        await hass.async_start()
+        await hass.async_block_till_done()
+        assert hass.state is CoreState.running
+        assert len(started) == 1
+        LOGGER.info("Real Home Assistant startup completed: state=%s", hass.state)
+        assert {hass.states.get(eid).state for eid in ids[VINS[0]].values()} == {"unknown"}
+        result = await refresh(configured, VINS[0], {**HEALTHY, ALIASES[0]: 1})
+        assert list(result.values()) == ["on", "off", "off", "off"]
+        result = await refresh(configured, VINS[0], HEALTHY)
+&gt;       assert list(result.values()) == ["off"] * 4
+E       AssertionError: assert ['on', 'off', 'off', 'off'] == ['off', 'off', 'off', 'off']
+E         
+E         At index 0 diff: 'on' != 'off'
+E         
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           [
+E         -     'off',
+E         ?       ^^
+E         +     'on',
+E         ?       ^
+E               'off',
+E               'off',
+E               'off',
+E           ]
+
+tests/test_tpms_started.py:45: AssertionError</failure></testcase></testsuite></testsuites>
