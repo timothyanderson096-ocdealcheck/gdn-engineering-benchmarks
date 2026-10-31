@@ -1,0 +1,27 @@
+{
+  "stage": "hacs-target",
+  "status": "PASS",
+  "exit_code": 0,
+  "repository": "timothyanderson096-ocdealcheck/houseload_forecast",
+  "candidate_sha": "a6f76ef5858f39759ad9ff332041ea00dd148230",
+  "parent_sha": "a37dbdb2ab04cece733f949b636f5be97bdd2c2b",
+  "tree_sha": "600e777f3ffea1cdf0bf0a74baa790de3737757a",
+  "public": true,
+  "proper_fork": true,
+  "metadata": {
+    "description": "A Home Assistant custom integration for hourly house load forecasting and battery runtime estimation for PV systems with battery storage. The forecast is based on actual historical consumption data from the Home Assistant statistics database \u2014 differentiated by each individual day of the week.",
+    "archived": false,
+    "has_issues": true,
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    },
+    "topics": [
+      "hacs",
+      "home-assistant"
+    ]
+  }
+}

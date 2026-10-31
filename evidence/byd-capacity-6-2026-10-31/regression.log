@@ -1,0 +1,13 @@
+test_actual_ha_publication_preserves_retention_and_recovers (test_capacity_units.CapacityUnitTests.test_actual_ha_publication_preserves_retention_and_recovers) ... ok
+test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) ... ok
+test_capacity_value_and_unit_use_one_state_snapshot (test_capacity_units.CapacityUnitTests.test_capacity_value_and_unit_use_one_state_snapshot) ... ok
+test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) ... ok
+test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) ... ok
+test_kwh_and_unitless_sensors_keep_existing_values (test_capacity_units.CapacityUnitTests.test_kwh_and_unitless_sensors_keep_existing_values) ... ok
+test_missing_unavailable_and_malformed_values_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_missing_unavailable_and_malformed_values_skip_initial_forecast) ... ok
+test_wh_capacity_matches_documented_kwh_forecast (test_capacity_units.CapacityUnitTests.test_wh_capacity_matches_documented_kwh_forecast) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.140s
+
+OK

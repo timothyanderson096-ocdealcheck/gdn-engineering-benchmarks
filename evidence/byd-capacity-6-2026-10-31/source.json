@@ -1,0 +1,63 @@
+{
+  "stage": "source",
+  "status": "PASS",
+  "exit_code": 0,
+  "repository": "https://github.com/thokoh74-DE/houseload_forecast.git",
+  "base": "a37dbdb2ab04cece733f949b636f5be97bdd2c2b",
+  "patch_sha256": "7f16898e06058938694e19bc757fdaaf182d82aaa98aafb116ea3d49398d2b7a",
+  "candidate_files": {
+    "CHANGELOG.md": {
+      "git_blob": "edeff8294f17a0aadf5da12d4bb719f53274bfec",
+      "sha256": "f2f13dfb2031153c5a3cac4e7cd7fcd5f8888fa0dc37ec2dd729592c859309f8"
+    },
+    "README.en.md": {
+      "git_blob": "ea88be22ebcfb26baa84e4046d92c8dd23da9998",
+      "sha256": "091425ea1d322bce8ec4e61f94a5ee8c784265ef588144fa0b26ffe25aa65248"
+    },
+    "README.md": {
+      "git_blob": "8f0caa84ed6d5cbff5b71a4757cd1a835b82fd25",
+      "sha256": "2812adf79f075c45baf4acada7de98758a4d2811a3c81c2e1063d535c206dda9"
+    },
+    "custom_components/houseload_forecast/CHANGELOG.md": {
+      "git_blob": "2abce50fd3fa3cb70f72405c6e5cdb1623bf92a2",
+      "sha256": "c2b00fb3da5068c357c795c4e2048a7de5fa1ab27e0b885371f830c3f050afea"
+    },
+    "custom_components/houseload_forecast/de.json": {
+      "git_blob": "293b3b6c16800d57f1a92253df346de8bddfbd30",
+      "sha256": "38dec12ce885ba00672b82137870090f6411f2158244f8f5002d85fc6692ea78"
+    },
+    "custom_components/houseload_forecast/en.json": {
+      "git_blob": "082166b92b29dff2305fffbc918facf06cd1d09b",
+      "sha256": "cafc3b82b76fc0b7350b6454b096cb9388001d096fdb1baf471593a9a5d25615"
+    },
+    "custom_components/houseload_forecast/sensor.py": {
+      "git_blob": "700c3c5be334dcf59993c5756463d90b2bfe991f",
+      "sha256": "362067d9b6fa27987a5c3c18d4061126ac131c2853a9e07afc11a51cfab52100"
+    },
+    "custom_components/houseload_forecast/strings.json": {
+      "git_blob": "b20c791cba24d3f09203a2a8323cab9375e3e4e5",
+      "sha256": "f2b5af07f3252f4265dc338de696c495e28146896db0498b8c0161d68c2e5033"
+    },
+    "custom_components/houseload_forecast/translations/de.json": {
+      "git_blob": "595877c89b6e08d5fcbe154932ffaa32c2903927",
+      "sha256": "ac55a8ff0f61807a5e3d84ffd4a2b042217c782bae459afe505a44397e7e9e8c"
+    },
+    "custom_components/houseload_forecast/translations/en.json": {
+      "git_blob": "063226e83389969dc92c7e139a85a88cf89eb026",
+      "sha256": "d3dbfb60681df71cfb678f54cca21a76380049cceefc6092cd5df55e59719dec"
+    },
+    "tests/test_capacity_units.py": {
+      "git_blob": "9e0f98f260561839b2914333c8a17311f43f3b68",
+      "sha256": "9262491c73e39ce2a19b8ba84dc0fdb4260d65c3d3b41cb426ca9376f5c1adb7"
+    },
+    "translations/de.json": {
+      "git_blob": "da2da967d4542576a194015034b0a7fa063031f7",
+      "sha256": "8d0e85ca1cf36fe38a2045b8ae3a29edf79148dd1589cbcc59274cd71778f345"
+    },
+    "translations/en.json": {
+      "git_blob": "ac021620e1bd903b13cda52712568b32a28c36b1",
+      "sha256": "5b63613ab3a1b05425869904d336dcbad29d5ca0e507a9e7893cd95cdc6c7cf5"
+    }
+  },
+  "hardware_io": false
+}

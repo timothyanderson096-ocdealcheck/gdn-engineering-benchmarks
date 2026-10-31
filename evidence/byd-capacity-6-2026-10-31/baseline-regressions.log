@@ -1,0 +1,269 @@
+test_actual_ha_publication_preserves_retention_and_recovers (test_capacity_units.CapacityUnitTests.test_actual_ha_publication_preserves_retention_and_recovers) ... FAIL
+test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) ... 
+  test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (value='inf', unit='kWh') ... ERROR
+  test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (value='1e308', unit='MWh') ... ERROR
+  test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (finite_value='1e308', unit='kWh') ... ERROR
+test_capacity_value_and_unit_use_one_state_snapshot (test_capacity_units.CapacityUnitTests.test_capacity_value_and_unit_use_one_state_snapshot) ... FAIL
+test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) ... 
+  test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='mWh') ... FAIL
+  test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='MWh') ... FAIL
+  test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='J') ... FAIL
+test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) ... 
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='W') ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='%') ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='KWH') ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='unexpected') ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit=123) ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit=['Wh']) ... FAIL
+  test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit={'unit': 'Wh'}) ... FAIL
+test_kwh_and_unitless_sensors_keep_existing_values (test_capacity_units.CapacityUnitTests.test_kwh_and_unitless_sensors_keep_existing_values) ... ok
+test_missing_unavailable_and_malformed_values_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_missing_unavailable_and_malformed_values_skip_initial_forecast) ... ok
+test_wh_capacity_matches_documented_kwh_forecast (test_capacity_units.CapacityUnitTests.test_wh_capacity_matches_documented_kwh_forecast) ... FAIL
+
+======================================================================
+ERROR: test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (value='inf', unit='kWh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 152, in test_capacity_numeric_boundaries_do_not_overflow
+    await self.coordinator.async_refresh()
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 336, in async_refresh
+    await self.hass.async_add_executor_job(self._compute)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 866, in _compute
+    self.bat_only_runtime_min = min(int(bat_only_h * 60), MAX_RUNTIME_MIN)
+                                    ~~~^^^^^^^^^^^^^^^^^
+OverflowError: cannot convert float infinity to integer
+
+======================================================================
+ERROR: test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (value='1e308', unit='MWh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 152, in test_capacity_numeric_boundaries_do_not_overflow
+    await self.coordinator.async_refresh()
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 336, in async_refresh
+    await self.hass.async_add_executor_job(self._compute)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 866, in _compute
+    self.bat_only_runtime_min = min(int(bat_only_h * 60), MAX_RUNTIME_MIN)
+                                    ~~~^^^^^^^^^^^^^^^^^
+OverflowError: cannot convert float infinity to integer
+
+======================================================================
+ERROR: test_capacity_numeric_boundaries_do_not_overflow (test_capacity_units.CapacityUnitTests.test_capacity_numeric_boundaries_do_not_overflow) (finite_value='1e308', unit='kWh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 159, in test_capacity_numeric_boundaries_do_not_overflow
+    await self.coordinator.async_refresh()
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 336, in async_refresh
+    await self.hass.async_add_executor_job(self._compute)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/custom_components/houseload_forecast/sensor.py", line 866, in _compute
+    self.bat_only_runtime_min = min(int(bat_only_h * 60), MAX_RUNTIME_MIN)
+                                    ~~~^^^^^^^^^^^^^^^^^
+OverflowError: cannot convert float infinity to integer
+
+======================================================================
+FAIL: test_actual_ha_publication_preserves_retention_and_recovers (test_capacity_units.CapacityUnitTests.test_actual_ha_publication_preserves_retention_and_recovers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 192, in test_actual_ha_publication_preserves_retention_and_recovers
+    with self.assertLogs(sensor._LOGGER, level="WARNING"):
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_capacity_value_and_unit_use_one_state_snapshot (test_capacity_units.CapacityUnitTests.test_capacity_value_and_unit_use_one_state_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 178, in test_capacity_value_and_unit_use_one_state_snapshot
+    self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 11059.0 != 11.059 within 7 places (11047.941 difference)
+
+======================================================================
+FAIL: test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='mWh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 107, in test_energy_prefixes_and_joules_convert_to_kwh
+    self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 11059000.0 != 11.059 within 7 places (11058988.941 difference)
+
+======================================================================
+FAIL: test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='MWh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 107, in test_energy_prefixes_and_joules_convert_to_kwh
+    self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0.011059 != 11.059 within 7 places (11.047941 difference)
+
+======================================================================
+FAIL: test_energy_prefixes_and_joules_convert_to_kwh (test_capacity_units.CapacityUnitTests.test_energy_prefixes_and_joules_convert_to_kwh) (unit='J')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 107, in test_energy_prefixes_and_joules_convert_to_kwh
+    self.assertAlmostEqual(self.coordinator.bat_max_kwh, 11.059)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 39812400.0 != 11.059 within 7 places (39812388.941 difference)
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='W')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='%')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='KWH')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit='unexpected')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit=123)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit=['Wh'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_incompatible_or_malformed_units_skip_initial_forecast (test_capacity_units.CapacityUnitTests.test_incompatible_or_malformed_units_skip_initial_forecast) (unit={'unit': 'Wh'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 128, in test_incompatible_or_malformed_units_skip_initial_forecast
+    with self.assertLogs(sensor._LOGGER, level="WARNING") as messages:
+         ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/unittest/_log.py", line 84, in __exit__
+    self._raiseFailure(
+    ~~~~~~~~~~~~~~~~~~^
+        "no logs of level {} or higher triggered on {}"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        .format(logging.getLevelName(self.level), self.logger.name))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no logs of level WARNING or higher triggered on custom_components.houseload_forecast.sensor
+
+======================================================================
+FAIL: test_wh_capacity_matches_documented_kwh_forecast (test_capacity_units.CapacityUnitTests.test_wh_capacity_matches_documented_kwh_forecast)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/workspace/scratch/082cb377dee0/byd-owner-runtime/python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/workspace/scratch/082cb377dee0/finish-byd/capacity-baseline/tests/test_capacity_units.py", line 95, in test_wh_capacity_matches_documented_kwh_forecast
+    self.assertEqual(self.forecast_snapshot(), control)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'bat_max_kwh': 11059.0, 'bat_kwh': 6170.922, 'bat_rest_kwh[12774 chars]ue}]} != {'bat_max_kwh': 11.059, 'bat_kwh': 6.170921999999999, 'bat_[12634 chars]ue}]}
+Diff is 36798 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.144s
+
+FAILED (failures=13, errors=3)

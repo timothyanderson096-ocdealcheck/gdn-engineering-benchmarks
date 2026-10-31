@@ -1,0 +1,97 @@
+::DEBUG:: Using selector: EpollSelector
+::INFO:: Category: integration
+::INFO:: Repository: timothyanderson096-ocdealcheck/houseload_forecast@a6f76ef5858f39759ad9ff332041ea00dd148230
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> Checking repository.
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> Running checks against a6f76ef5858f39759ad9ff332041ea00dd148230
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> Getting custom_components/houseload_forecast/manifest.json for ref=a6f76ef5858f39759ad9ff332041ea00dd148230
+::INFO:: <Validation issues> completed
+::INFO:: <Validation information> completed
+::INFO:: <Validation topics> completed
+::INFO:: <Validation description> completed
+::INFO:: <Validation archived> completed
+::DEBUG:: The repository has a popular OSI-approved license: MIT License
+::INFO:: <Validation license> completed
+::INFO:: <Validation integration_manifest> completed
+::DEBUG:: The repository contains brands assets at custom_components/houseload_forecast/brand/icon.png
+::INFO:: <Validation brands> completed
+::WARNING:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> The integration manifest has no categories, see https://contributors.home-assistant.io/core/integrations/categories/
+::INFO:: <Validation integration_categories> completed
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> Getting hacs.json for version=a6f76ef5858f39759ad9ff332041ea00dd148230
+::DEBUG:: Trying to download https://raw.githubusercontent.com/timothyanderson096-ocdealcheck/houseload_forecast/a6f76ef5858f39759ad9ff332041ea00dd148230/hacs.json
+::INFO:: <Validation hacsjson> completed
+::INFO:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> All (10) checks passed
+::INFO:: <Integration timothyanderson096-ocdealcheck/houseload_forecast> Validation completed
+::group::data
+{
+    "data": {
+        "archived": false,
+        "authors": [
+            "@thokoh74-DE"
+        ],
+        "category": "integration",
+        "config_flow": true,
+        "default_branch": "main",
+        "description": "A Home Assistant custom integration for hourly house load forecasting and battery runtime estimation for PV systems with battery storage. The forecast is based on actual historical consumption data from the Home Assistant statistics database \u2014 differentiated by each individual day of the week.",
+        "domain": "houseload_forecast",
+        "downloads": 0,
+        "etag_repository": "W/\"8c9b2b8bccd04be800551beba8247b969152715b2a8a54ff403e7004c29b3920\"",
+        "etag_releases": null,
+        "file_name": "",
+        "first_install": false,
+        "full_name": "timothyanderson096-ocdealcheck/houseload_forecast",
+        "hide": false,
+        "has_issues": true,
+        "id": "1440653855",
+        "installed_commit": null,
+        "installed_version": null,
+        "installed": false,
+        "last_commit": null,
+        "last_updated": "2026-10-31T08:27:05Z",
+        "last_version": null,
+        "manifest_name": "House Load Forecast & PV Battery Runtime",
+        "new": true,
+        "open_issues": 0,
+        "prerelease": null,
+        "published_tags": [],
+        "releases": false,
+        "selected_tag": "a6f76ef5858f39759ad9ff332041ea00dd148230",
+        "show_beta": false,
+        "stargazers_count": 0,
+        "topics": [
+            "hacs",
+            "home-assistant"
+        ]
+    },
+    "manifest": {
+        "content_in_root": false,
+        "country": [
+            "DE",
+            "AT",
+            "CH"
+        ],
+        "filename": "houseload_forecast.zip",
+        "hacs": null,
+        "hide_default_branch": false,
+        "homeassistant": "2024.1.0",
+        "manifest": {
+            "name": "Hauslast Prognose & Akku Restlaufzeit",
+            "render_readme": true,
+            "homeassistant": "2024.1.0",
+            "country": [
+                "DE",
+                "AT",
+                "CH"
+            ],
+            "zip_release": true,
+            "filename": "houseload_forecast.zip"
+        },
+        "name": "Hauslast Prognose & Akku Restlaufzeit",
+        "persistent_directory": null,
+        "render_readme": true,
+        "zip_release": true
+    },
+    "release": null,
+    "category": "integration",
+    "ref": "a6f76ef5858f39759ad9ff332041ea00dd148230"
+}
+::endgroup::
