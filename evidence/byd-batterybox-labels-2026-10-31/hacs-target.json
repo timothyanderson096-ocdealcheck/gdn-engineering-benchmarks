@@ -1,0 +1,28 @@
+{
+  "stage": "hacs-target",
+  "status": "PASS",
+  "exit_code": 0,
+  "repository": "timothyanderson096-ocdealcheck/byd_battery_box",
+  "candidate_sha": "d812e7bd22cc2aefa18614b31aba48276e496565",
+  "parent_sha": "2cc576278e05b7bb1778f1a50246b8072dc77883",
+  "tree_sha": "4f10f58d064f8b72956e8c9a47c3b5f1dd79bb78",
+  "public": true,
+  "proper_fork": true,
+  "metadata": {
+    "description": "Home assistant Custom Component for reading data from BYD Battery Box. This integration uses a local modbus connection.",
+    "archived": false,
+    "has_issues": true,
+    "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "spdx_id": "Apache-2.0",
+      "url": "https://api.github.com/licenses/apache-2.0",
+      "node_id": "MDc6TGljZW5zZTI="
+    },
+    "topics": [
+      "byd",
+      "hacs",
+      "home-assistant"
+    ]
+  }
+}

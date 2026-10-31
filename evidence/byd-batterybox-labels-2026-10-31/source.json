@@ -1,0 +1,19 @@
+{
+  "stage": "source",
+  "status": "PASS",
+  "exit_code": 0,
+  "repository": "https://github.com/TimWeyand/byd_battery_box.git",
+  "base": "2cc576278e05b7bb1778f1a50246b8072dc77883",
+  "patch_sha256": "588b81acaef434a4662ba030f59d7def6ca78a466b23cc4c6c80673d2c4daa12",
+  "candidate_files": {
+    "custom_components/byd_battery_box/bydboxclient.py": {
+      "git_blob": "44502ee30383dcd0a5ff4b6264584e0899ad9e8b",
+      "sha256": "d1d739ed91557068f95ae9e57aba190afecf9ef167e892a49e14b524b83c25f1"
+    },
+    "tests/test_balancing_module_labels.py": {
+      "git_blob": "c25288ba57f540a5d55248ba65730e8da359121b",
+      "sha256": "751e7361c791574b08cbd9c5dee1fde93d28af40cb97249c8e3a4154c685a014"
+    }
+  },
+  "hardware_io": false
+}

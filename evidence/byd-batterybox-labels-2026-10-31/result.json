@@ -1,0 +1,353 @@
+{
+  "status": "MANDATORY_GATES_PASSED",
+  "mandatory_project_gates": "PASS",
+  "hacs": "PASS",
+  "submission_status": "VALIDATED_FOR_REVIEW",
+  "base": "2cc576278e05b7bb1778f1a50246b8072dc77883",
+  "patch_sha256": "588b81acaef434a4662ba030f59d7def6ca78a466b23cc4c6c80673d2c4daa12",
+  "candidate_repository": "timothyanderson096-ocdealcheck/byd_battery_box",
+  "candidate_sha": "d812e7bd22cc2aefa18614b31aba48276e496565",
+  "validation_runner_repository": "timothyanderson096-ocdealcheck/gdn-engineering-benchmarks",
+  "hassfest_image": "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc",
+  "hacs_image": "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25",
+  "stages": {
+    "source": {
+      "stage": "source",
+      "status": "PASS",
+      "exit_code": 0,
+      "repository": "https://github.com/TimWeyand/byd_battery_box.git",
+      "base": "2cc576278e05b7bb1778f1a50246b8072dc77883",
+      "patch_sha256": "588b81acaef434a4662ba030f59d7def6ca78a466b23cc4c6c80673d2c4daa12",
+      "candidate_files": {
+        "custom_components/byd_battery_box/bydboxclient.py": {
+          "git_blob": "44502ee30383dcd0a5ff4b6264584e0899ad9e8b",
+          "sha256": "d1d739ed91557068f95ae9e57aba190afecf9ef167e892a49e14b524b83c25f1"
+        },
+        "tests/test_balancing_module_labels.py": {
+          "git_blob": "c25288ba57f540a5d55248ba65730e8da359121b",
+          "sha256": "751e7361c791574b08cbd9c5dee1fde93d28af40cb97249c8e3a4154c685a014"
+        }
+      },
+      "hardware_io": false
+    },
+    "native-version": {
+      "stage": "native-version",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.02,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-c",
+        "import sys; assert sys.version_info[:3] == (3, 14, 8); print(sys.version)"
+      ],
+      "log": "native-version.log"
+    },
+    "venv": {
+      "stage": "venv",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 2.12,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-m",
+        "venv",
+        "/home/runner/work/_temp/batterybox-venv"
+      ],
+      "log": "venv.log"
+    },
+    "install": {
+      "stage": "install",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 30.74,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-m",
+        "pip",
+        "install",
+        "homeassistant==2026.10.2",
+        "pymodbus==3.13.1",
+        "pytest==9.2.0",
+        "pytest-asyncio==1.4.0",
+        "ruff==0.17.3"
+      ],
+      "log": "install.log"
+    },
+    "dependency-check": {
+      "stage": "dependency-check",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.27,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "log": "dependency-check.log"
+    },
+    "packages": {
+      "stage": "packages",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.21,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-m",
+        "pip",
+        "freeze"
+      ],
+      "log": "packages.log"
+    },
+    "runtime-versions": {
+      "stage": "runtime-versions",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.06,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-c",
+        "from importlib.metadata import version; expected={'homeassistant':'2026.10.2','pymodbus':'3.13.1','pytest':'9.2.0','pytest-asyncio':'1.4.0','ruff':'0.17.3'}; actual={name:version(name) for name in expected}; print(actual); assert actual == expected"
+      ],
+      "log": "runtime-versions.log"
+    },
+    "regression": {
+      "stage": "regression",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 1.87,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "asyncio_default_fixture_loop_scope=function",
+        "--junitxml",
+        "/home/runner/work/_temp/batterybox-evidence/regression.xml",
+        "tests/test_balancing_module_labels.py"
+      ],
+      "log": "regression.log"
+    },
+    "regression-count": {
+      "stage": "regression-count",
+      "status": "PASS",
+      "exit_code": 0,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ruff": {
+      "stage": "ruff",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.03,
+      "command": [
+        "/home/runner/work/_temp/batterybox-venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "custom_components/",
+        "tests/test_balancing_module_labels.py"
+      ],
+      "log": "ruff.log"
+    },
+    "compile-version": {
+      "stage": "compile-version",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.02,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "-c",
+        "import sys; assert sys.version_info[:3] == (3, 12, 14); print(sys.version)"
+      ],
+      "log": "compile-version.log"
+    },
+    "compile": {
+      "stage": "compile",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.06,
+      "command": [
+        "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+        "-m",
+        "py_compile",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/__init__.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/button.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/bydbox_const.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/bydboxclient.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/client_test.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/config_flow.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/const.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/extmodbusclient.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/hub.py",
+        "/home/runner/work/_temp/batterybox-source/custom_components/byd_battery_box/sensor.py",
+        "/home/runner/work/_temp/batterybox-source/tests/test_balancing_module_labels.py"
+      ],
+      "log": "compile.log"
+    },
+    "docker-probe": {
+      "stage": "docker-probe",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 2.07,
+      "command": [
+        "docker",
+        "info"
+      ],
+      "log": "docker-probe.log"
+    },
+    "hassfest-pull": {
+      "stage": "hassfest-pull",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 12.34,
+      "command": [
+        "docker",
+        "pull",
+        "--platform",
+        "linux/amd64",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest-pull.log"
+    },
+    "hassfest-image": {
+      "stage": "hassfest-image",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.02,
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest-image.log"
+    },
+    "hassfest": {
+      "stage": "hassfest",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.53,
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--platform",
+        "linux/amd64",
+        "--mount",
+        "type=bind,source=/home/runner/work/_temp/batterybox-source,target=/github/workspace",
+        "--workdir",
+        "/github/workspace",
+        "ghcr.io/home-assistant/hassfest@sha256:e2576d17e5af7a99c7b91ab852467914b330d63d4c092df27105e5a0c6540bfc"
+      ],
+      "log": "hassfest.log"
+    },
+    "hacs-target": {
+      "stage": "hacs-target",
+      "status": "PASS",
+      "exit_code": 0,
+      "repository": "timothyanderson096-ocdealcheck/byd_battery_box",
+      "candidate_sha": "d812e7bd22cc2aefa18614b31aba48276e496565",
+      "parent_sha": "2cc576278e05b7bb1778f1a50246b8072dc77883",
+      "tree_sha": "4f10f58d064f8b72956e8c9a47c3b5f1dd79bb78",
+      "public": true,
+      "proper_fork": true,
+      "metadata": {
+        "description": "Home assistant Custom Component for reading data from BYD Battery Box. This integration uses a local modbus connection.",
+        "archived": false,
+        "has_issues": true,
+        "license": {
+          "key": "apache-2.0",
+          "name": "Apache License 2.0",
+          "spdx_id": "Apache-2.0",
+          "url": "https://api.github.com/licenses/apache-2.0",
+          "node_id": "MDc6TGljZW5zZTI="
+        },
+        "topics": [
+          "byd",
+          "hacs",
+          "home-assistant"
+        ]
+      }
+    },
+    "hacs-pull": {
+      "stage": "hacs-pull",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 26.03,
+      "command": [
+        "docker",
+        "pull",
+        "--platform",
+        "linux/amd64",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs-pull.log"
+    },
+    "hacs-image": {
+      "stage": "hacs-image",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.03,
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs-image.log"
+    },
+    "hacs": {
+      "stage": "hacs",
+      "status": "PASS",
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 8.23,
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--platform",
+        "linux/amd64",
+        "--env",
+        "INPUT_GITHUB_TOKEN",
+        "--env",
+        "INPUT_REPOSITORY",
+        "--env",
+        "GITHUB_REPOSITORY",
+        "--env",
+        "REPOSITORY_REF",
+        "--env",
+        "INPUT_CATEGORY",
+        "--env",
+        "INPUT_COMMENT",
+        "ghcr.io/hacs/action@sha256:35241cb9a8ce6a83f3fbe893880283419c59bea26e71d4c99e279856518bde25"
+      ],
+      "log": "hacs.log"
+    }
+  },
+  "limits": [
+    "Synthetic data-only regressions; no configured HA lifecycle or physical battery",
+    "client_test.py is never collected or executed",
+    "Informational mypy and Bandit checks are not included in this scoped job"
+  ]
+}

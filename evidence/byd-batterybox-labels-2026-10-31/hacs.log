@@ -1,0 +1,88 @@
+::DEBUG:: Using selector: EpollSelector
+::INFO:: Category: integration
+::INFO:: Repository: timothyanderson096-ocdealcheck/byd_battery_box@d812e7bd22cc2aefa18614b31aba48276e496565
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> Checking repository.
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> Running checks against d812e7bd22cc2aefa18614b31aba48276e496565
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> Getting custom_components/byd_battery_box/manifest.json for ref=d812e7bd22cc2aefa18614b31aba48276e496565
+::INFO:: <Validation issues> completed
+::INFO:: <Validation information> completed
+::INFO:: <Validation topics> completed
+::INFO:: <Validation description> completed
+::INFO:: <Validation archived> completed
+::DEBUG:: The repository has a popular OSI-approved license: Apache License 2.0
+::INFO:: <Validation license> completed
+::INFO:: <Validation integration_manifest> completed
+::WARNING:: The repository does not contain brands assets at custom_components/byd_battery_box/brand/icon.png. Falling back to checking the brands repository.
+::WARNING:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> The integration manifest has no categories, see https://contributors.home-assistant.io/core/integrations/categories/
+::INFO:: <Validation integration_categories> completed
+::DEBUG:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> Getting hacs.json for version=d812e7bd22cc2aefa18614b31aba48276e496565
+::DEBUG:: Trying to download https://raw.githubusercontent.com/timothyanderson096-ocdealcheck/byd_battery_box/d812e7bd22cc2aefa18614b31aba48276e496565/hacs.json
+::INFO:: <Validation hacsjson> completed
+::INFO:: <Validation brands> completed
+::INFO:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> All (10) checks passed
+::INFO:: <Integration timothyanderson096-ocdealcheck/byd_battery_box> Validation completed
+::group::data
+{
+    "data": {
+        "archived": false,
+        "authors": [
+            "@redpomodoro",
+            "@TimWeyand"
+        ],
+        "category": "integration",
+        "config_flow": true,
+        "default_branch": "main",
+        "description": "Home assistant Custom Component for reading data from BYD Battery Box. This integration uses a local modbus connection.",
+        "domain": "byd_battery_box",
+        "downloads": 0,
+        "etag_repository": "W/\"892425eb1dabcdbe6006b8ce51a240c41840cbecada4e48995eb325f039c5208\"",
+        "etag_releases": null,
+        "file_name": "",
+        "first_install": false,
+        "full_name": "timothyanderson096-ocdealcheck/byd_battery_box",
+        "hide": false,
+        "has_issues": true,
+        "id": "1440652620",
+        "installed_commit": null,
+        "installed_version": null,
+        "installed": false,
+        "last_commit": null,
+        "last_updated": "2026-10-31T08:19:37Z",
+        "last_version": null,
+        "manifest_name": "BYD Battery Box",
+        "new": true,
+        "open_issues": 0,
+        "prerelease": null,
+        "published_tags": [],
+        "releases": false,
+        "selected_tag": "d812e7bd22cc2aefa18614b31aba48276e496565",
+        "show_beta": false,
+        "stargazers_count": 0,
+        "topics": [
+            "byd",
+            "hacs",
+            "home-assistant"
+        ]
+    },
+    "manifest": {
+        "content_in_root": false,
+        "country": [],
+        "filename": null,
+        "hacs": null,
+        "hide_default_branch": false,
+        "homeassistant": "2025.9.0",
+        "manifest": {
+            "name": "BYD Battery Box",
+            "homeassistant": "2025.9.0",
+            "render_readme": true
+        },
+        "name": "BYD Battery Box",
+        "persistent_directory": null,
+        "render_readme": true,
+        "zip_release": false
+    },
+    "release": null,
+    "category": "integration",
+    "ref": "d812e7bd22cc2aefa18614b31aba48276e496565"
+}
+::endgroup::

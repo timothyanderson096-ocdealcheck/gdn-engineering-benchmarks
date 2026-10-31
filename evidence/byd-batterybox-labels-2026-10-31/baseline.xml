@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="7" time="0.686" timestamp="2026-10-31T09:15:03.276978+01:00" hostname="d2b6ea660526"><testcase classname="tests.test_balancing_module_labels" name="test_module_labels_and_sparse_counts[1]" time="0.001"><failure message="assert [0] == [1]&#10;  &#10;  At index 0 diff: 0 != 1&#10;  Use -v to get more diff">modules = 1
+
+    @pytest.mark.parametrize("modules", [1, 2, 3])
+    def test_module_labels_and_sparse_counts(modules):
+        client = make_client(modules)
+        counts = {"0": 3, "15": 2, "16": 7, "31": 5, "32": 11, "47": 13}
+        before = deepcopy(counts)
+    
+        result = client._get_balancings_totals_per_module(counts)
+    
+        expected_counts = [
+            [3, *([0] * 14), 2],
+            [7, *([0] * 14), 5],
+            [11, *([0] * 14), 13],
+        ][:modules]
+&gt;       assert [item["m"] for item in result] == list(range(1, modules + 1))
+E       assert [0] == [1]
+E         
+E         At index 0 diff: 0 != 1
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:59: AssertionError</failure></testcase><testcase classname="tests.test_balancing_module_labels" name="test_module_labels_and_sparse_counts[2]" time="0.001"><failure message="assert [0, 1] == [1, 2]&#10;  &#10;  At index 0 diff: 0 != 1&#10;  Use -v to get more diff">modules = 2
+
+    @pytest.mark.parametrize("modules", [1, 2, 3])
+    def test_module_labels_and_sparse_counts(modules):
+        client = make_client(modules)
+        counts = {"0": 3, "15": 2, "16": 7, "31": 5, "32": 11, "47": 13}
+        before = deepcopy(counts)
+    
+        result = client._get_balancings_totals_per_module(counts)
+    
+        expected_counts = [
+            [3, *([0] * 14), 2],
+            [7, *([0] * 14), 5],
+            [11, *([0] * 14), 13],
+        ][:modules]
+&gt;       assert [item["m"] for item in result] == list(range(1, modules + 1))
+E       assert [0, 1] == [1, 2]
+E         
+E         At index 0 diff: 0 != 1
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:59: AssertionError</failure></testcase><testcase classname="tests.test_balancing_module_labels" name="test_module_labels_and_sparse_counts[3]" time="0.001"><failure message="assert [0, 1, 2] == [1, 2, 3]&#10;  &#10;  At index 0 diff: 0 != 1&#10;  Use -v to get more diff">modules = 3
+
+    @pytest.mark.parametrize("modules", [1, 2, 3])
+    def test_module_labels_and_sparse_counts(modules):
+        client = make_client(modules)
+        counts = {"0": 3, "15": 2, "16": 7, "31": 5, "32": 11, "47": 13}
+        before = deepcopy(counts)
+    
+        result = client._get_balancings_totals_per_module(counts)
+    
+        expected_counts = [
+            [3, *([0] * 14), 2],
+            [7, *([0] * 14), 5],
+            [11, *([0] * 14), 13],
+        ][:modules]
+&gt;       assert [item["m"] for item in result] == list(range(1, modules + 1))
+E       assert [0, 1, 2] == [1, 2, 3]
+E         
+E         At index 0 diff: 0 != 1
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:59: AssertionError</failure></testcase><testcase classname="tests.test_balancing_module_labels" name="test_zero_counts_keep_one_based_labels" time="0.001"><failure message="AssertionError: assert [{'m': 0, 'bc..., 0, 0, ...]}] == [{'m': 1, 'bc..., 0, 0, ...]}]&#10;  &#10;  At index 0 diff: {'m': 0, 'bct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} != {'m': 1, 'bct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}&#10;  Use -v to get more diff">def test_zero_counts_keep_one_based_labels():
+        result = make_client(2)._get_balancings_totals_per_module({})
+&gt;       assert result == [{"m": 1, "bct": [0] * 16}, {"m": 2, "bct": [0] * 16}]
+E       AssertionError: assert [{'m': 0, 'bc..., 0, 0, ...]}] == [{'m': 1, 'bc..., 0, 0, ...]}]
+E         
+E         At index 0 diff: {'m': 0, 'bct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} != {'m': 1, 'bct': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:66: AssertionError</failure></testcase><testcase classname="tests.test_balancing_module_labels" name="test_no_modules_keeps_empty_result" time="0.000" /><testcase classname="tests.test_balancing_module_labels" name="test_log_aggregation_reaches_one_based_sensor_attributes" time="0.001"><failure message="AssertionError: assert {'total_cells... 0, 0, ...]}]} == {'total_cells... 0, 0, ...]}]}&#10;  &#10;  Differing items:&#10;  {'total_cells': [{'m': 0, 'bct': [2, 0, 0, 0, 0, 0, ...]}, {'m': 1, 'bct': [1, 0, 0, 0, 0, 0, ...]}]} != {'total_cells': [{'m': 1, 'bct': [2, 0, 0, 0, 0, 0, ...]}, {'m': 2, 'bct': [1, 0, 0, 0, 0, 0, ...]}]}&#10;  Use -v to get more diff">def test_log_aggregation_reaches_one_based_sensor_attributes():
+        client = make_client(2)
+        client.log = {
+            "first": balancing_log(1, [0, 15, 16]),
+            "second": balancing_log(1, [0, 31]),
+            "other_tower": balancing_log(2, [1, 17]),
+        }
+        before = deepcopy(client.log)
+    
+        client._update_balancing_cells_totals()
+    
+        sensor = make_sensor(client, "bms1_b_total")
+        other = make_sensor(client, "bms2_b_total")
+        assert sensor.state == 2
+&gt;       assert sensor.extra_state_attributes == {
+            "total_cells": [
+                {"m": 1, "bct": [2, *([0] * 14), 1]},
+                {"m": 2, "bct": [1, *([0] * 14), 1]},
+            ]
+        }
+E       AssertionError: assert {'total_cells... 0, 0, ...]}]} == {'total_cells... 0, 0, ...]}]}
+E         
+E         Differing items:
+E         {'total_cells': [{'m': 0, 'bct': [2, 0, 0, 0, 0, 0, ...]}, {'m': 1, 'bct': [1, 0, 0, 0, 0, 0, ...]}]} != {'total_cells': [{'m': 1, 'bct': [2, 0, 0, 0, 0, 0, ...]}, {'m': 2, 'bct': [1, 0, 0, 0, 0, 0, ...]}]}
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:95: AssertionError</failure></testcase><testcase classname="tests.test_balancing_module_labels" name="test_balancing_labels_align_with_cell_attribute_convention" time="0.001"><failure message="assert [0, 1] == [1, 2]&#10;  &#10;  At index 0 diff: 0 != 1&#10;  Use -v to get more diff">def test_balancing_labels_align_with_cell_attribute_convention():
+        client = make_client(2)
+        client.data["bms1_b_cells_total"] = client._get_balancings_totals_per_module({"0": 1, "16": 2})
+        # Independent synthetic voltage attribute follows the existing one-based
+        # module convention from update_bms_status_data and the published UI.
+        client.data["bms1_cell_voltages"] = [{"m": 1, "v": [3300] * 16}, {"m": 2, "v": [3301] * 16}]
+        balancing = make_sensor(client, "bms1_b_total").extra_state_attributes["total_cells"]
+        voltage = make_sensor(client, "bms1_avg_c_v").extra_state_attributes["cell_voltages"]
+    
+&gt;       assert [item["m"] for item in balancing] == [item["m"] for item in voltage] == [1, 2]
+E       assert [0, 1] == [1, 2]
+E         
+E         At index 0 diff: 0 != 1
+E         Use -v to get more diff
+
+tests/test_balancing_module_labels.py:120: AssertionError</failure></testcase></testsuite></testsuites>
