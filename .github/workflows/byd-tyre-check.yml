@@ -1,0 +1,91 @@
+name: BYD tyre-warning candidate gates
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/byd-tyre-check.yml
+      - scripts/byd-tyre-check/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: byd-tyre-check-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tyre-candidate:
+    name: Frozen candidate baseline/replay and project gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+    steps:
+      - name: Check out the reviewed validation helper
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set validation paths
+        run: |
+          echo "BYD_SOURCE_DIR=$RUNNER_TEMP/tyre-source" >> "$GITHUB_ENV"
+          echo "BYD_EVIDENCE_DIR=$RUNNER_TEMP/tyre-evidence" >> "$GITHUB_ENV"
+
+      - name: Set up Home Assistant runtime Python
+        id: native-python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14.8'
+
+      - name: Set up upstream lint workflow Python
+        id: lint-python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11.15'
+
+      - name: Restore exact baseline, frozen patch and regression files
+        id: source
+        run: python scripts/byd-tyre-check/validate.py prepare --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Run before/after regressions, configured services and actual HA core startup
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-tyre-check/validate.py native --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR" --python '${{ steps.native-python.outputs.python-path }}'
+
+      - name: Run actual project Ruff, Black and mypy commands on Python 3.11
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-tyre-check/validate.py lint --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR" --python '${{ steps.lint-python.outputs.python-path }}'
+
+      - name: Probe real Docker and run pinned hassfest on the complete candidate
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: python scripts/byd-tyre-check/validate.py hassfest --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Verify proper public fork and full tree, then run pinned HACS without ignores
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        env:
+          BYD_HACS_TOKEN: ${{ github.token }}
+        run: python scripts/byd-tyre-check/validate.py hacs --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Report actual gate statuses
+        if: always()
+        run: python scripts/byd-tyre-check/validate.py report --source "$BYD_SOURCE_DIR" --evidence "$BYD_EVIDENCE_DIR"
+
+      - name: Retain synthetic debug logs, JUnit, versions and exact gate results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tyre-candidate-gates-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/tyre-evidence/*.json
+            ${{ runner.temp }}/tyre-evidence/*.log
+            ${{ runner.temp }}/tyre-evidence/*.xml
+            ${{ runner.temp }}/tyre-evidence/summary.md
