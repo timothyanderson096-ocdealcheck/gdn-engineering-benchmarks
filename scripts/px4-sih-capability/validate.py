@@ -14,9 +14,11 @@ from pathlib import Path
 
 BASE = "789389fd46fcfb8473544d2fb3eeabd85893294c"
 PINS = {
+    "smoke.py": "01d49dd56b177545801dd4976c337d3fccb3e7918427e88a94256e4b8f20b7a9",
+    "../px4-event-range/wire_probe.py": "3aac3fefd1bddc8c3be023d5da3a6f550257254c32583820108bb3cc6837f074",
     "../px4-native-capability/validate.py": "db3a192ffedf40c3fe27b51a436624ca6ec2723a588931c3cd0631632530cefd",
     "../px4-native-capability/constraints.txt": "d801b8887d31c28f91bc0bcfd5ba1fd2a7095e4ac7663b6e123be5055f3e2e03",
-    "../px4-event-range/validate.py": "a1651aaaf7a50362a475e8101f92f62ec507d51ff03a839d462877d643fb4cd9",
+    "../px4-event-range/validate.py": "02ab9a9af1b9801db25342717bbd6e2688b662d431f0562fd0da431ccf325ad8",
 }
 EXPECTED = (
     "source",
@@ -72,6 +74,8 @@ def readiness(evidence, events, bundle: Path, source: Path, python: str) -> bool
         str(dialect),
         "--evidence",
         str(evidence.directory),
+        "--shared-probe",
+        str(bundle / "../px4-event-range/wire_probe.py"),
     ]
     timed_out = False
     cleanup = None

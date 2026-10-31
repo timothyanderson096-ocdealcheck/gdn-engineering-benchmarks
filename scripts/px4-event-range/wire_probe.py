@@ -41,9 +41,111 @@ JOURNAL_MAGIC = b"PX4UDP1\n"
 # After the magic, repeat: monotonic_ns:uint64, IPv4:4bytes, source_port:uint16,
 # payload_length:uint16, kernel_drop_counter:uint32, raw UDP payload bytes.
 JOURNAL_HEADER = struct.Struct("<Q4sHHI")
+CAPTURE_PINS = {
+    "capture_native.cpp": "fe5ff6b8b2b7d0361cf27c68117d959ece8cf76e2cf6ff371b47ed5b407b02f4",
+    "capture_native.py": "9cdd5616000effe72b13d44b4797ea9dc0caac6b2854b92ed4a5e5cae446864f",
+}
 
 
-class Collector:
+def shutdown_native(
+    process,
+    binary: Path,
+    rootfs: Path,
+    environment: dict,
+    output: Path,
+    daemon_log: Path,
+    prior_failures=(),
+):
+    """Observe natural shutdown, including a source-permitted missing trailer.
+
+    PX4 queues shutdown on HPWORK. The worker may terminate with exit 0 before
+    the daemon writes the RPC trailer; Client::_listen then returns -1/255.
+    Only the complete joint observation below qualifies. This helper sends no
+    signal and never turns an earlier harness/control failure into success.
+    """
+    command = [str(binary.with_name("px4-shutdown"))]
+    proof = {
+        "command": command,
+        "client_exit": None,
+        "native_exit": None,
+        "prior_failures": list(prior_failures),
+        "signals_sent": [],
+        "accepted": False,
+        "contract": "OWNED_ALIVE_NATIVE_THEN_CLI_0_OR_SILENT_255_WITH_FRESH_TERMINAL_MARKER_AND_NATURAL_EXIT0",
+    }
+    try:
+        assert process.poll() is None, "Native process exited before shutdown request"
+        journal = json.loads((output / "native-process.json").read_text())
+        token = (
+            Path(f"/proc/{process.pid}/stat").read_text().rsplit(") ", 1)[1].split()[19]
+        )
+        argv0 = (
+            Path(f"/proc/{process.pid}/cmdline").read_bytes().split(b"\0")[0].decode()
+        )
+        assert (
+            journal["pid"] == journal["pgid"] == process.pid == os.getpgid(process.pid)
+        )
+        assert (
+            journal["start_token"] == token
+            and journal["binary"] == str(binary) == argv0
+        )
+        proof["owned_native_alive_before_request"] = True
+        offset = daemon_log.stat().st_size
+        proof["daemon_log_offset_before_request"] = offset
+        proof["request_at_ns"] = time.monotonic_ns()
+        completed = subprocess.run(
+            command,
+            cwd=rootfs,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=8,
+            check=False,
+        )
+        proof["client_exit"] = completed.returncode
+        proof["client_output_bytes"] = len(completed.stdout)
+        proof["client_output_sha256"] = hashlib.sha256(completed.stdout).hexdigest()
+        (output / "shutdown.log").write_bytes(completed.stdout)
+        proof["native_exit"] = process.wait(timeout=15)
+        tail = daemon_log.read_bytes()[offset:]
+        proof["fresh_terminal_exit_marker"] = any(
+            line.strip() == b"Exiting NOW." for line in tail.splitlines()
+        )
+        proof["post_request_log_sha256"] = hashlib.sha256(tail).hexdigest()
+        proof["finished_at_ns"] = time.monotonic_ns()
+        if completed.returncode == 0:
+            proof["classification"] = "ACK_OBSERVED"
+            client_contract = True
+        elif completed.returncode == 255 and completed.stdout == b"":
+            proof["classification"] = "NOT_OBSERVED_SOURCE_PERMITTED_SHUTDOWN"
+            client_contract = True
+        else:
+            proof["classification"] = "UNACCEPTED_CLIENT_RESULT"
+            client_contract = False
+        proof["accepted"] = bool(
+            client_contract
+            and proof["native_exit"] == 0
+            and proof["fresh_terminal_exit_marker"]
+            and not proof["prior_failures"]
+        )
+        proof["scope"] = (
+            "Normal shutdown request and natural native exit 0; no proof of RPC ACK for 255, exact thread schedule, or all hooks/resources drained"
+        )
+    except (
+        AssertionError,
+        KeyError,
+        TypeError,
+        ValueError,
+        OSError,
+        subprocess.SubprocessError,
+    ) as error:
+        proof["error"] = repr(error)
+    proof["native_exit"] = process.poll()
+    (output / "shutdown-proof.json").write_text(json.dumps(proof, indent=2) + "\n")
+    return proof
+
+
+class PythonCollector:
     def __init__(self, output: Path):
         self.output = output
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -114,8 +216,28 @@ class Collector:
                 destination.write(json.dumps(record, separators=(",", ":")) + "\n")
 
 
+def native_capture_module():
+    directory = Path(__file__).resolve().parent / "capture"
+    for name, expected in CAPTURE_PINS.items():
+        assert (
+            hashlib.sha256((directory / name).read_bytes()).hexdigest() == expected
+        ), f"Reviewed native capture source changed: {name}"
+    spec = importlib.util.spec_from_file_location(
+        "px4_event_native_capture", directory / "capture_native.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def Collector(output: Path, *, native_binary: Path):
+    """Require the reviewed native reader for the event burst; no fallback."""
+    return native_capture_module().Collector(output, native_binary=native_binary)
+
+
 class Probe:
-    def __init__(self, collector: Collector, dialect, output: Path):
+    def __init__(self, collector, dialect, output: Path):
         self.collector = collector
         self.dialect = dialect
         self.output = output
@@ -407,6 +529,8 @@ class Probe:
             "receiver_parameter_latency_seconds": (
                 (parameters[0][0] - parameter_at) / 1e9 if parameters else None
             ),
+            "actual_read_only_request_offset_seconds": (parameter_at - requested_at)
+            / 1e9,
             "maximum_heartbeat_gap_seconds": max(
                 (
                     (right - left) / 1e9
@@ -458,6 +582,8 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--dialect", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--capture-native", type=Path, required=True)
+    parser.add_argument("--expected-capture-sha256", required=True)
     args = parser.parse_args()
     source = args.source.resolve()
     output = args.output.resolve()
@@ -485,7 +611,14 @@ def main() -> int:
     environment.update(PX4_SIM_MODEL="sihsim_quadx", PX4_SIM_SPEED_FACTOR="1")
     environment.pop("PX4_NET_INTERFACE", None)
     try:
-        collector = Collector(output)
+        capture_binary = args.capture_native.resolve()
+        actual_capture_hash = hashlib.sha256(capture_binary.read_bytes()).hexdigest()
+        assert (
+            actual_capture_hash == args.expected_capture_sha256
+        ), "Compiled recorder identity changed"
+        result["capture_binary"] = str(capture_binary)
+        result["capture_binary_sha256"] = actual_capture_hash
+        collector = Collector(output, native_binary=capture_binary)
         probe = Probe(collector, dialect, output)
         result["receive_buffer"] = {
             "requested": REQUESTED_RECEIVE_BUFFER,
@@ -555,22 +688,30 @@ def main() -> int:
                 if name == "unavailable_single":
                     assert hint is not None, "No actual oldest-available hint to replay"
                     probe.request_case("hint_followup", hint, hint, cached, latest)
-            shutdown = subprocess.run(
-                [str(build / "bin/px4-shutdown")],
-                cwd=rootfs,
-                env=environment,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                timeout=8,
-                check=False,
-            )
-            (output / "shutdown.log").write_text(shutdown.stdout)
-            assert shutdown.returncode == 0, "Native shutdown command failed"
-            assert process.wait(timeout=15) == 0, "Native process did not exit cleanly"
     except (AssertionError, OSError, RuntimeError, subprocess.SubprocessError):
         result["harness_error"] = traceback.format_exc()
     finally:
+        if process is not None:
+            prior = (
+                [
+                    check["name"]
+                    for check in probe.checks
+                    if not check["passed"] and check["kind"] == "control"
+                ]
+                if probe is not None
+                else ["probe_setup_incomplete"]
+            )
+            if result.get("harness_error"):
+                prior.append("harness_error")
+            result["shutdown"] = shutdown_native(
+                process, binary, rootfs, environment, output, output / "px4.log", prior
+            )
+            if probe is not None:
+                probe.check(
+                    "normal_shutdown_contract",
+                    result["shutdown"]["accepted"],
+                    **result["shutdown"],
+                )
         if process is not None and process.poll() is None:
             forced = True
             os.killpg(process.pid, signal.SIGINT)
@@ -588,6 +729,8 @@ def main() -> int:
                     cleanup_errors.append(repr(error))
         if cleanup_errors:
             result["cleanup_errors"] = cleanup_errors
+        if collector is not None:
+            result["capture_status"] = collector.capture_status
         result["forced_cleanup"] = forced
         result["native_exit"] = process.returncode if process is not None else None
         result["checks"] = probe.checks if probe is not None else []

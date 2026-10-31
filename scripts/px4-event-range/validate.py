@@ -25,6 +25,12 @@ CAPABILITY_HELPER_SHA256 = (
 CAPABILITY_CONSTRAINTS_SHA256 = (
     "d801b8887d31c28f91bc0bcfd5ba1fd2a7095e4ac7663b6e123be5055f3e2e03"
 )
+WIRE_PROBE_SHA256 = "3aac3fefd1bddc8c3be023d5da3a6f550257254c32583820108bb3cc6837f074"
+CAPTURE_PINS = {
+    "capture_native.cpp": "fe5ff6b8b2b7d0361cf27c68117d959ece8cf76e2cf6ff371b47ed5b407b02f4",
+    "capture_native.py": "9cdd5616000effe72b13d44b4797ea9dc0caac6b2854b92ed4a5e5cae446864f",
+    "test_capture.py": "86a7f5286cdeebec61413d7281a99e5f67a5179ba99cadbe0c9aac7fcdc5ed3d",
+}
 EXPECTED_BASELINE_FAILURES = {
     "full:complete_inclusive_wire_range",
     "full:cached_event_contents",
@@ -124,9 +130,90 @@ def generated_dialect(evidence, source: Path, python: str) -> Path | None:
     return generated if evidence.check("dialect-proof", verify) else None
 
 
+def compile_capture(evidence, source: Path, python: str) -> bool:
+    directory = Path(__file__).resolve().parent / "capture"
+    binary = source.parent / "px4-event-capture"
+
+    def inputs():
+        for name, expected in CAPTURE_PINS.items():
+            assert (
+                hashlib.sha256((directory / name).read_bytes()).hexdigest() == expected
+            ), name
+        assert not binary.exists(), "Recorder build output must be new"
+        return {"sources": CAPTURE_PINS}
+
+    if not evidence.check("capture-inputs", inputs):
+        return False
+    if not evidence.run(
+        "capture-offline-tests",
+        [python, str(directory / "test_capture.py"), "JournalTests", "-v"],
+        cwd=directory,
+        timeout=60,
+    ):
+        return False
+    if not evidence.run(
+        "capture-build",
+        [
+            "g++",
+            "-std=c++17",
+            "-O2",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            str(directory / "capture_native.cpp"),
+            "-o",
+            str(binary),
+        ],
+        cwd=directory,
+        timeout=120,
+    ):
+        return False
+
+    def proof():
+        for name, expected in CAPTURE_PINS.items():
+            assert (
+                hashlib.sha256((directory / name).read_bytes()).hexdigest() == expected
+            ), name
+        return {
+            "binary": str(binary),
+            "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
+            "source_hashes": CAPTURE_PINS,
+            "compiler": subprocess.check_output(["g++", "--version"], text=True),
+            "offline_scope": "Five journal/lifecycle/TX controls; no synthetic UDP or PX4 runtime",
+        }
+
+    return evidence.check("capture-proof", proof)
+
+
 def run_wire(evidence, source: Path, dialect: Path, python: str, variant: str) -> bool:
     output = evidence.directory / "wire"
     log = evidence.directory / "wire-run.log"
+    capture_proof = json.loads(
+        (evidence.directory.parent / "baseline/capture-proof.json").read_text()
+    )
+    capture_binary = source.parent / "px4-event-capture"
+
+    def recorder_identity():
+        assert (
+            hashlib.sha256(
+                Path(__file__).with_name("wire_probe.py").read_bytes()
+            ).hexdigest()
+            == WIRE_PROBE_SHA256
+        )
+        assert capture_proof["status"] == "PASS"
+        assert capture_proof["binary"] == str(capture_binary)
+        assert (
+            hashlib.sha256(capture_binary.read_bytes()).hexdigest()
+            == capture_proof["binary_sha256"]
+        )
+        return {
+            "binary": str(capture_binary),
+            "binary_sha256": capture_proof["binary_sha256"],
+            "wire_probe_sha256": WIRE_PROBE_SHA256,
+        }
+
+    if not evidence.check("capture-identity", recorder_identity):
+        return False
     command = [
         python,
         str(Path(__file__).with_name("wire_probe.py")),
@@ -136,6 +223,10 @@ def run_wire(evidence, source: Path, dialect: Path, python: str, variant: str) -
         str(dialect),
         "--output",
         str(output),
+        "--capture-native",
+        str(capture_binary),
+        "--expected-capture-sha256",
+        capture_proof["binary_sha256"],
     ]
     timed_out = False
     timeout_cleanup = None
@@ -190,6 +281,11 @@ def run_wire(evidence, source: Path, dialect: Path, python: str, variant: str) -
             not result["forced_cleanup"] and result["native_exit"] == 0
         ), "Unclean actual native process shutdown"
         assert not result["control_failures"], result["control_failures"]
+        assert result["capture_binary_sha256"] == capture_proof["binary_sha256"]
+        capture = result["capture_status"]
+        assert capture["status"] == "STOPPED" and capture["stop_requested"]
+        assert not capture.get("error") and capture["kernel_dropped"] == 0, capture
+        assert capture["packets"] > 0, "No actual native datagrams captured"
         failures = set(result["regression_failures"])
         assert failures == (
             EXPECTED_BASELINE_FAILURES if variant == "baseline" else set()
@@ -269,6 +365,8 @@ def clean_native_after_timeout(output: Path, source: Path) -> dict:
 
 
 def baseline(module, evidence, source: Path, python: str) -> bool:
+    if not compile_capture(evidence, source, python):
+        return False
     if not evidence.run(
         "sitl-build", ["make", "px4_sitl_default", "-j4"], cwd=source, timeout=2400
     ):
@@ -354,9 +452,14 @@ def report(module, evidence) -> bool:
         "python-dependencies",
         "python-packages",
         "tool-versions",
+        "baseline/capture-inputs",
+        "baseline/capture-offline-tests",
+        "baseline/capture-build",
+        "baseline/capture-proof",
         "baseline/sitl-build",
         "baseline/dialect-generation",
         "baseline/dialect-proof",
+        "baseline/capture-identity",
         "baseline/wire-run",
         "baseline/wire-oracle",
         "candidate/candidate-source",
@@ -366,6 +469,7 @@ def report(module, evidence) -> bool:
         "candidate/native-tests",
         "candidate/native-counts",
         "candidate/sitl-build",
+        "candidate/capture-identity",
         "candidate/wire-run",
         "candidate/wire-oracle",
         "candidate/final-source",

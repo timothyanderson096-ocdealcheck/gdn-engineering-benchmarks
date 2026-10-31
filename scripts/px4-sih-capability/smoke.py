@@ -18,6 +18,7 @@ from pathlib import Path
 LOCAL = ("127.0.0.1", 14540)
 REMOTE = ("127.0.0.1", 14580)
 READY_SECONDS = 60.0
+SHARED_SHA256 = "3aac3fefd1bddc8c3be023d5da3a6f550257254c32583820108bb3cc6837f074"
 
 
 def load_dialect(path: Path):
@@ -59,6 +60,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--dialect", type=Path, required=True)
     parser.add_argument("--evidence", type=Path, required=True)
+    parser.add_argument("--shared-probe", type=Path, required=True)
     args = parser.parse_args()
     source = args.source.resolve()
     evidence = args.evidence.resolve()
@@ -69,6 +71,10 @@ def main() -> int:
     rootfs = output / "rootfs"
     rootfs.mkdir()
     dialect = load_dialect(args.dialect.resolve())
+    assert (
+        hashlib.sha256(args.shared_probe.read_bytes()).hexdigest() == SHARED_SHA256
+    ), "Reviewed shared shutdown helper changed"
+    shared = load_dialect(args.shared_probe.resolve())
     decoder = dialect.MAVLink(None)
     decoder.robust_parsing = True
     environment = os.environ.copy()
@@ -225,15 +231,22 @@ def main() -> int:
             assert (
                 ready
             ), "Normal SIH modules and two actual disarmed heartbeats did not become ready within deadline"
-            shutdown = module("shutdown")
-            (output / "shutdown.log").write_text(shutdown.stdout)
-            result["shutdown_exit"] = shutdown.returncode
-            assert shutdown.returncode == 0
-            assert process.wait(timeout=15) == 0, "Native process did not exit cleanly"
     except (AssertionError, OSError, subprocess.SubprocessError) as error:
         result["error"] = repr(error)
         ready = False
     finally:
+        if process is not None:
+            prior = ["readiness_incomplete"] if not ready or result.get("error") else []
+            result["shutdown"] = shared.shutdown_native(
+                process,
+                binary,
+                rootfs,
+                environment,
+                output,
+                output / "px4-sih.log",
+                prior,
+            )
+            ready = ready and result["shutdown"]["accepted"]
         if receiver is not None:
             receiver.close()
         if process is not None and process.poll() is None:

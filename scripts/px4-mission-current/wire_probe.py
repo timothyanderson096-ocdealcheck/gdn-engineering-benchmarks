@@ -24,7 +24,7 @@ import traceback
 BASE = "789389fd46fcfb8473544d2fb3eeabd85893294c"
 MAVLINK = "2e2b6af99084e4fde9bb304c84bb9253a1a98b6f"
 PYMAVLINK = "19880422d451de4daba3fd96781076afb1cb889c"
-SHARED_SHA256 = "adf02b72bcab6846dc7f459997efadb6b2d3d9e8090d3aeb5154a850739dbe36"
+SHARED_SHA256 = "3aac3fefd1bddc8c3be023d5da3a6f550257254c32583820108bb3cc6837f074"
 CLIENT = (245, 190)
 AUTOPILOT = (1, 1)
 REMOTE = ("127.0.0.1", 14580)
@@ -456,7 +456,8 @@ def main() -> int:
         result["binary_sha256"] = sha256(binary)
         if udp_inodes(REMOTE[1]):
             raise RuntimeError("Expected native UDP port is already bound before launch")
-        collector = shared.Collector(output)
+        # This low-volume compatibility replay keeps its original Python reader.
+        collector = shared.PythonCollector(output)
         result["receive_buffer"] = {"requested": shared.REQUESTED_RECEIVE_BUFFER,
                                     "effective": collector.effective_buffer}
         decoder = shared.load_dialect(dialect)
@@ -483,17 +484,24 @@ def main() -> int:
                 time.sleep(0.1)
             result["native_socket_identity"] = native_socket_identity(process.pid)
             replay.run()
-            shutdown = subprocess.run([str(build / "bin/px4-shutdown")], cwd=rootfs,
-                                      env=environment, stdout=subprocess.PIPE,
-                                      stderr=subprocess.STDOUT, text=True, timeout=8,
-                                      check=False)
-            (output / "shutdown.log").write_text(shutdown.stdout)
-            replay.require("normal_shutdown_command", shutdown.returncode == 0,
-                           exit_code=shutdown.returncode)
-            replay.require("native_exited_cleanly", process.wait(timeout=15) == 0)
     except Exception:
         result["harness_error"] = traceback.format_exc()
     finally:
+        if process is not None:
+            prior = ([check["name"] for check in replay.checks if not check["passed"]]
+                     if replay is not None else ["replay_setup_incomplete"])
+            if result.get("harness_error"):
+                prior.append("harness_error")
+            result["shutdown"] = shared.shutdown_native(
+                process, binary, rootfs, environment, output, output / "px4.log", prior
+            )
+            if replay is not None:
+                replay.checks.append({"name": "normal_shutdown_command",
+                                      "passed": result["shutdown"]["accepted"],
+                                      "details": result["shutdown"]})
+                replay.checks.append({"name": "native_exited_cleanly",
+                                      "passed": process.poll() == 0,
+                                      "details": {"exit_code": process.poll()}})
         if process is not None and process.poll() is None:
             forced = True
             try:
