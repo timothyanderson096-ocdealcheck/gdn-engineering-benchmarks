@@ -1,0 +1,83 @@
+name: BYD owner startup check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/byd-owner-startup.yml
+      - scripts/byd-owner-startup/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: byd-owner-startup-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  onboarding:
+    name: Pinned Home Assistant startup and BYD discovery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+    steps:
+      - name: Check out the reviewed harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pinned Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14.8'
+
+      - name: Prepare evidence directory
+        run: |
+          echo "BYD_SOURCE_DIR=$RUNNER_TEMP/byd-owner-sources" >> "$GITHUB_ENV"
+          echo "BYD_EVIDENCE_DIR=$RUNNER_TEMP/byd-owner-evidence" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/byd-owner-evidence"
+
+      - name: Check harness controls
+        run: python -W error::ResourceWarning -m unittest discover -s scripts/byd-owner-startup -p 'test_*.py' -v
+
+      - name: Restore exact sources and verify both patches
+        run: |
+          bash scripts/byd-owner-startup/setup_sources.sh "$BYD_SOURCE_DIR" "$BYD_EVIDENCE_DIR/source.json" 2>&1 | tee "$BYD_EVIDENCE_DIR/sources.log"
+
+      - name: Install and verify the paired runtime
+        run: |
+          python -m venv "$BYD_SOURCE_DIR/.venv"
+          "$BYD_SOURCE_DIR/.venv/bin/python" -m pip install homeassistant==2026.10.2 -e "$BYD_SOURCE_DIR/pyBYD" 2>&1 | tee "$BYD_EVIDENCE_DIR/install.log"
+          "$BYD_SOURCE_DIR/.venv/bin/python" -m pip check 2>&1 | tee "$BYD_EVIDENCE_DIR/dependency-check.log"
+          "$BYD_SOURCE_DIR/.venv/bin/python" -m pip freeze > "$BYD_EVIDENCE_DIR/packages.txt"
+
+      - name: Run real onboarding and initial BYD form checks
+        run: |
+          python scripts/byd-owner-startup/ha_onboarding_smoke.py --python "$BYD_SOURCE_DIR/.venv/bin/python" --source-dir "$BYD_SOURCE_DIR/hass-byd-vehicle" --out "$BYD_EVIDENCE_DIR/ha-runtime" --startup-timeout 300 --request-timeout 90
+
+      - name: Retain selected reports and redacted logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: byd-owner-startup-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+          path: |
+            ${{ runner.temp }}/byd-owner-evidence/source.json
+            ${{ runner.temp }}/byd-owner-evidence/sources.log
+            ${{ runner.temp }}/byd-owner-evidence/install.log
+            ${{ runner.temp }}/byd-owner-evidence/dependency-check.log
+            ${{ runner.temp }}/byd-owner-evidence/packages.txt
+            ${{ runner.temp }}/byd-owner-evidence/ha-runtime/result.json
+            ${{ runner.temp }}/byd-owner-evidence/ha-runtime/preflight.log
+            ${{ runner.temp }}/byd-owner-evidence/ha-runtime/ha-startup.log
+            ${{ runner.temp }}/byd-owner-evidence/ha-runtime/http-trace.json
+
