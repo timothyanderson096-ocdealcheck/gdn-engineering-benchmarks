@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -193,13 +194,19 @@ def hassfest(evidence: Evidence, source: Path) -> bool:
 
 
 def github_resource(path: str, token: str) -> dict:
+    url = f"https://api.github.com/repos/{CANDIDATE_REPOSITORY}"
+    if path:
+        url += f"/{path}"
     request = urllib.request.Request(
-        f"https://api.github.com/repos/{CANDIDATE_REPOSITORY}/{path}",
+        url,
         headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
                  "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "BatteryBox-candidate-validation"},
     )
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as error:
+        raise ValueError(f"GitHub API GET {url} failed with HTTP {error.code}") from error
 
 
 def verify_hacs_target(evidence: Evidence, source: Path, token: str) -> bool:
