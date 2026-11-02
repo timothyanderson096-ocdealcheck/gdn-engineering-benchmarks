@@ -1,0 +1,12 @@
+diff --git a/examples/hardware_registry_demo.cpp b/examples/hardware_registry_demo.cpp
+index 5bdb3ccd24b935ffc11411341cd0c5f20ef32cad..fb11f41c97b8f3b3d440d8b76ad0d7bec3c2eb21 100644
+--- a/examples/hardware_registry_demo.cpp
++++ b/examples/hardware_registry_demo.cpp
+@@ -10,7 +10,6 @@
+ #include "trossen_sdk/hw/hardware_component.hpp"
+ #include "trossen_sdk/hw/hardware_registry.hpp"
+ #include "trossen_sdk/hw/arm/trossen_arm_component.hpp"
+-#include "trossen_sdk/hw/camera/realsense_camera_component.hpp"
+ #include "trossen_sdk/hw/camera/opencv_camera_component.hpp"
+ 
+ // Mock hardware component for demo (doesn't require real devices)

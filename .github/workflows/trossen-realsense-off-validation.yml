@@ -1,0 +1,234 @@
+name: Trossen RealSense-OFF draft validation
+
+on:
+  push:
+    branches: [validation/trossen-loader-regression-2026-11-02]
+    paths:
+      - .github/workflows/trossen-realsense-off-validation.yml
+      - scripts/trossen-realsense-off-validation/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trossen-realsense-off-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native:
+    name: Main RealSense-OFF before and after
+    if: github.repository == 'timothyanderson096-ocdealcheck/gdn-engineering-benchmarks' && github.ref == 'refs/heads/validation/trossen-loader-regression-2026-11-02'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      # Pinned main uses the Status-returning Parquet API removed in Arrow 26.
+      ARROW_VERSION: 25.0.1-1
+      ARM_SHA: 507451794d11e54f11494ef3be1d786ec6060d4a
+    steps:
+      - name: Check out the frozen validation draft
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set isolated runner paths
+        run: |
+          echo "TROSSEN_RS_SOURCE=$RUNNER_TEMP/trossen-realsense-off-source" >> "$GITHUB_ENV"
+          echo "TROSSEN_RS_EVIDENCE=$RUNNER_TEMP/trossen-realsense-off-evidence" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/trossen-realsense-off-evidence"
+      - name: Restore and verify pristine pinned main
+        id: source
+        run: |
+          bash scripts/trossen-realsense-off-validation/source.sh prepare "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/pristine-source.log"
+      - name: Install native dependencies without RealSense
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git pkg-config libopencv-dev libprotobuf-dev \
+            protobuf-compiler libbz2-dev zlib1g-dev libzstd-dev liblz4-dev \
+            nlohmann-json3-dev ffmpeg ca-certificates curl ripgrep
+      - name: Install the main-compatible Apache Arrow and Parquet pin
+        run: |
+          curl --fail --show-error --location --retry 3 \
+            --output "$RUNNER_TEMP/apache-arrow-source.deb" \
+            https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb
+          sudo apt-get install -y --no-install-recommends "$RUNNER_TEMP/apache-arrow-source.deb"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            "libarrow-dev=$ARROW_VERSION" "libparquet-dev=$ARROW_VERSION"
+      - name: Install the pinned arm-library release without accessing hardware
+        run: |
+          git init "$RUNNER_TEMP/trossen-arm"
+          git -C "$RUNNER_TEMP/trossen-arm" remote add origin https://github.com/TrossenRobotics/trossen_arm.git
+          git -C "$RUNNER_TEMP/trossen-arm" fetch --depth 1 origin "$ARM_SHA"
+          git -C "$RUNNER_TEMP/trossen-arm" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/trossen-arm" rev-parse HEAD)" = "$ARM_SHA"
+          cmake -S "$RUNNER_TEMP/trossen-arm" -B "$RUNNER_TEMP/trossen-arm/build" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/trossen-arm-install" \
+            -DBUILD_DEMOS=OFF -DBUILD_DOCS=OFF
+          cmake --build "$RUNNER_TEMP/trossen-arm/build" --parallel 2
+          cmake --install "$RUNNER_TEMP/trossen-arm/build"
+      - name: Record the actual environment and reject an installed RealSense SDK
+        run: |
+          {
+            uname -a
+            cmake --version
+            c++ --version
+            protoc --version
+            ffmpeg -version
+            pkg-config --modversion protobuf opencv4
+            dpkg-query -W libarrow-dev libparquet-dev libprotobuf-dev libopencv-dev nlohmann-json3-dev
+            printf 'arm_commit=%s\nvalidation_commit=%s\n' "$ARM_SHA" "$GITHUB_SHA"
+          } > "$TROSSEN_RS_EVIDENCE/environment.txt"
+          if pkg-config --exists realsense2; then
+            printf 'RealSense SDK unexpectedly available through pkg-config.\n' >&2
+            exit 1
+          fi
+          test ! -e /usr/include/librealsense2/rs.hpp
+          test ! -e /usr/local/include/librealsense2/rs.hpp
+      - name: Configure pristine main with every optional feature explicitly disabled
+        id: configure
+        run: |
+          cmake -S "$TROSSEN_RS_SOURCE" -B "$TROSSEN_RS_SOURCE/build" \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/trossen-arm-install" \
+            -DProtobuf_PROTOC_EXECUTABLE=/usr/bin/protoc \
+            -DTROSSEN_ENABLE_REALSENSE=OFF -DTROSSEN_ENABLE_ZED=OFF \
+            -DTROSSEN_ENABLE_VIDEO_ENCODE=OFF -DTROSSEN_ENABLE_RERUN_OBSERVER=OFF \
+            -DTROSSEN_SDK_ENABLE_POLICY_CLIENT=OFF -DBUILD_PYTHON_BINDINGS=OFF \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/configure-off.log"
+          rg -x 'TROSSEN_ENABLE_REALSENSE:BOOL=OFF' "$TROSSEN_RS_SOURCE/build/CMakeCache.txt"
+      - name: Require the exact baseline missing-RealSense-header failure
+        id: baseline
+        run: |
+          bash scripts/trossen-realsense-off-validation/source.sh verify-pristine "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/before-baseline-source.log"
+          set +e
+          cmake --build "$TROSSEN_RS_SOURCE/build" --target hardware_registry_demo --parallel 2 \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/baseline-demo-build.log"
+          baseline_pipe_status=("${PIPESTATUS[@]}")
+          set -e
+          printf '%s\n' "${baseline_pipe_status[0]}" \
+            > "$TROSSEN_RS_EVIDENCE/baseline-demo-build-exit-code.txt"
+          test "${baseline_pipe_status[1]}" -eq 0
+          test "${baseline_pipe_status[0]}" -ne 0
+          rg -F 'hardware_registry_demo.cpp' "$TROSSEN_RS_EVIDENCE/baseline-demo-build.log"
+          rg -F 'realsense_camera_component.hpp' "$TROSSEN_RS_EVIDENCE/baseline-demo-build.log"
+          rg -F 'fatal error: librealsense2/rs.hpp: No such file or directory' \
+            "$TROSSEN_RS_EVIDENCE/baseline-demo-build.log"
+      - name: Apply only the frozen unused-include deletion
+        id: patch
+        run: |
+          bash scripts/trossen-realsense-off-validation/source.sh apply "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-source.log"
+      - name: Compile the candidate demo in the identical dependency environment
+        id: candidate_build
+        run: |
+          cmake --build "$TROSSEN_RS_SOURCE/build" --target hardware_registry_demo --parallel 2 \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-demo-build.log"
+      - name: Run the default mock-only demo and assert its behavior
+        id: mock_demo
+        run: |
+          timeout 15s "$TROSSEN_RS_SOURCE/build/examples/hardware_registry_demo" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+          rg -F '[ok] 2 hardware components active' "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+          rg -F "[ok] Retrieved 'left_arm' with 7 joints" "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+          rg -F -- '- left_arm (mock_arm)' "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+          rg -F -- '- right_arm (mock_arm)' "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+          rg -F '[ok] Demo complete!' "$TROSSEN_RS_EVIDENCE/candidate-mock-demo.log"
+      - name: Attempt the full upstream candidate build without changing configuration
+        id: full_build
+        if: ${{ !cancelled() && steps.patch.outcome == 'success' }}
+        run: |
+          make -C "$TROSSEN_RS_SOURCE" build NPROC=2 \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-make-build.log"
+      - name: Run the upstream candidate test gate serially
+        id: full_tests
+        if: ${{ !cancelled() && steps.full_build.outcome == 'success' }}
+        env:
+          CTEST_PARALLEL_LEVEL: '1'
+        run: |
+          ctest --test-dir "$TROSSEN_RS_SOURCE/build" --show-only=json-v1 \
+            > "$TROSSEN_RS_EVIDENCE/candidate-test-inventory.json"
+          timeout 12m make -C "$TROSSEN_RS_SOURCE" test \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-make-test.log"
+      - name: Verify the final source state without accepting any additional edits
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        env:
+          PATCH_OUTCOME: ${{ steps.patch.outcome }}
+        run: |
+          git -C "$TROSSEN_RS_SOURCE" diff --binary --full-index \
+            > "$TROSSEN_RS_EVIDENCE/final-source.diff"
+          mode=verify-pristine
+          if [[ "$PATCH_OUTCOME" == success ]]; then
+            mode=verify
+          fi
+          bash scripts/trossen-realsense-off-validation/source.sh "$mode" "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/final-source.log"
+      - name: Retain before-and-after logs, complete gate results and exact environment
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trossen-realsense-off-native-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/trossen-realsense-off-evidence/
+            ${{ runner.temp }}/trossen-realsense-off-source/build/Testing/Temporary/*.log
+            ${{ runner.temp }}/trossen-realsense-off-source/build/CMakeCache.txt
+            ${{ runner.temp }}/trossen-realsense-off-source/build/compile_commands.json
+
+  quality:
+    name: Main candidate upstream full pre-commit gate
+    if: github.repository == 'timothyanderson096-ocdealcheck/gdn-engineering-benchmarks' && github.ref == 'refs/heads/validation/trossen-loader-regression-2026-11-02'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the frozen validation draft
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the recorded lint Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set isolated runner paths
+        run: |
+          echo "TROSSEN_RS_SOURCE=$RUNNER_TEMP/trossen-realsense-off-source" >> "$GITHUB_ENV"
+          echo "TROSSEN_RS_EVIDENCE=$RUNNER_TEMP/trossen-realsense-off-evidence" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/trossen-realsense-off-evidence"
+      - name: Restore pristine pinned main and apply the same frozen candidate patch
+        id: source
+        run: |
+          bash scripts/trossen-realsense-off-validation/source.sh prepare "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/pristine-source.log"
+          bash scripts/trossen-realsense-off-validation/source.sh apply "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/candidate-source.log"
+      - name: Install the pinned pre-commit runner
+        run: |
+          python -m pip install pre-commit==4.3.0
+          python -m pip freeze > "$TROSSEN_RS_EVIDENCE/lint-environment.txt"
+      - name: Run all hooks using the unchanged upstream configuration
+        working-directory: ${{ runner.temp }}/trossen-realsense-off-source
+        run: |
+          pre-commit run --all-files --show-diff-on-failure \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/pre-commit.log"
+      - name: Record hook edits and require the exact candidate source
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: |
+          git -C "$TROSSEN_RS_SOURCE" diff --binary --full-index \
+            > "$TROSSEN_RS_EVIDENCE/post-hooks.diff"
+          bash scripts/trossen-realsense-off-validation/source.sh verify "$TROSSEN_RS_SOURCE" \
+            2>&1 | tee "$TROSSEN_RS_EVIDENCE/final-source.log"
+      - name: Retain the actual lint result and any rejected hook edits
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trossen-realsense-off-quality-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/trossen-realsense-off-evidence/
