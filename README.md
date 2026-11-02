@@ -10,6 +10,10 @@ The key difference is not “more agents.” It is independent, evidence-driven 
 
 All seven cases—including ties and the mutual failure—are available here with protocols, pinned commits, frozen task statements, acceptance controls, control hashes, blinded review records, patches, commands, and limitations.
 
+## Verified upstream contributions
+
+**[See the accepted-engineering portfolio: major merged fixes in PX4, cantools, GPSDrivers and Micopay](evidence/UPSTREAM-CONTRIBUTIONS.md).** Each case links directly to the upstream pull request and names its tests, limitations and verified merge date. BYD work awaiting maintainer decisions is shown separately rather than counted as accepted.
+
 ## Current highlights and ongoing work
 
 ### Flagship external reference — Micopay PR #34
