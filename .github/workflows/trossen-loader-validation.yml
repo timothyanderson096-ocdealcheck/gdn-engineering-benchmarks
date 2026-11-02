@@ -1,0 +1,184 @@
+name: Trossen loader draft validation
+
+on:
+  push:
+    branches: [validation/trossen-loader-regression-2026-11-02]
+    paths:
+      - .github/workflows/trossen-loader-validation.yml
+      - scripts/trossen-loader-validation/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trossen-loader-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native:
+    name: CPU SDK build and loader regressions
+    if: github.repository == 'timothyanderson096-ocdealcheck/gdn-engineering-benchmarks' && github.ref == 'refs/heads/validation/trossen-loader-regression-2026-11-02'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ARROW_VERSION: 26.0.0-1
+      ARM_SHA: 507451794d11e54f11494ef3be1d786ec6060d4a
+    steps:
+      - name: Check out the frozen validation draft
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set isolated runner paths
+        run: |
+          echo "TROSSEN_SOURCE=$RUNNER_TEMP/trossen-loader-source" >> "$GITHUB_ENV"
+          echo "TROSSEN_EVIDENCE=$RUNNER_TEMP/trossen-loader-evidence" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/trossen-loader-evidence"
+      - name: Restore pinned upstream code and verify the tests-only patch
+        id: source
+        run: |
+          bash scripts/trossen-loader-validation/source.sh prepare "$TROSSEN_SOURCE" \
+            2>&1 | tee "$TROSSEN_EVIDENCE/source.log"
+      - name: Install native CPU build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git pkg-config libopencv-dev libprotobuf-dev \
+            protobuf-compiler libbz2-dev zlib1g-dev libzstd-dev liblz4-dev \
+            nlohmann-json3-dev ffmpeg ca-certificates curl
+      - name: Install the upstream-pinned Apache Arrow and Parquet version
+        run: |
+          curl --fail --show-error --location --retry 3 \
+            --output "$RUNNER_TEMP/apache-arrow-source.deb" \
+            https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb
+          sudo apt-get install -y --no-install-recommends "$RUNNER_TEMP/apache-arrow-source.deb"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            "libarrow-dev=$ARROW_VERSION" "libparquet-dev=$ARROW_VERSION"
+      - name: Install the pinned arm-library release without accessing hardware
+        run: |
+          git init "$RUNNER_TEMP/trossen-arm"
+          git -C "$RUNNER_TEMP/trossen-arm" remote add origin https://github.com/TrossenRobotics/trossen_arm.git
+          git -C "$RUNNER_TEMP/trossen-arm" fetch --depth 1 origin "$ARM_SHA"
+          git -C "$RUNNER_TEMP/trossen-arm" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/trossen-arm" rev-parse HEAD)" = "$ARM_SHA"
+          cmake -S "$RUNNER_TEMP/trossen-arm" -B "$RUNNER_TEMP/trossen-arm/build" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/trossen-arm-install" \
+            -DBUILD_DEMOS=OFF -DBUILD_DOCS=OFF
+          cmake --build "$RUNNER_TEMP/trossen-arm/build" --parallel 2
+          cmake --install "$RUNNER_TEMP/trossen-arm/build"
+      - name: Record the actual build environment
+        run: |
+          {
+            uname -a
+            cmake --version
+            c++ --version
+            protoc --version
+            ffmpeg -version
+            pkg-config --modversion protobuf opencv4
+            dpkg-query -W libarrow-dev libparquet-dev libprotobuf-dev libopencv-dev nlohmann-json3-dev
+            printf 'arm_commit=%s\nvalidation_commit=%s\n' "$ARM_SHA" "$GITHUB_SHA"
+          } > "$TROSSEN_EVIDENCE/environment.txt"
+      - name: Configure the real SDK with optional hardware and services disabled
+        id: configure
+        run: |
+          cmake -S "$TROSSEN_SOURCE" -B "$TROSSEN_SOURCE/build" \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/trossen-arm-install" \
+            -DProtobuf_PROTOC_EXECUTABLE=/usr/bin/protoc \
+            -DTROSSEN_ENABLE_REALSENSE=OFF -DTROSSEN_ENABLE_ZED=OFF \
+            -DTROSSEN_ENABLE_VIDEO_ENCODE=OFF -DTROSSEN_ENABLE_RERUN_OBSERVER=OFF \
+            -DTROSSEN_SDK_ENABLE_POLICY_CLIENT=OFF -DBUILD_PYTHON_BINDINGS=OFF \
+            2>&1 | tee "$TROSSEN_EVIDENCE/configure.log"
+      - name: Compile the loader tests against the real SDK
+        id: focused_build
+        run: |
+          cmake --build "$TROSSEN_SOURCE/build" --target test_mcap_dataset_loader --parallel 2 \
+            2>&1 | tee "$TROSSEN_EVIDENCE/focused-build.log"
+      - name: Run all loader cases, including the ten new recording regressions
+        id: focused_tests
+        run: |
+          ctest --test-dir "$TROSSEN_SOURCE/build" --output-on-failure --no-tests=error \
+            --timeout 120 -j 1 --output-junit "$TROSSEN_EVIDENCE/loader-tests.xml" \
+            -R '^(LoadAlignedEpisodeTest|AlignedRecordingTest|NearestSampleIndexTest|FirstBackwardStepTest|StreamWindowTest|RowGridTest)\.' \
+            2>&1 | tee "$TROSSEN_EVIDENCE/loader-tests.log"
+      - name: Run the full project build in the same CPU configuration
+        id: full_build
+        if: ${{ !cancelled() && steps.focused_build.outcome == 'success' }}
+        run: |
+          make -C "$TROSSEN_SOURCE" build NPROC=2 \
+            2>&1 | tee "$TROSSEN_EVIDENCE/make-build.log"
+      - name: Run the project test gate in the same CPU configuration
+        if: ${{ !cancelled() && steps.full_build.outcome == 'success' }}
+        env:
+          CTEST_PARALLEL_LEVEL: '1'
+        run: |
+          timeout 12m make -C "$TROSSEN_SOURCE" test \
+            2>&1 | tee "$TROSSEN_EVIDENCE/make-test.log"
+      - name: Confirm no production source or test assertion changed during validation
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: |
+          bash scripts/trossen-loader-validation/source.sh verify "$TROSSEN_SOURCE" \
+            2>&1 | tee "$TROSSEN_EVIDENCE/final-source.log"
+      - name: Retain build logs, test results and exact environment
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trossen-loader-native-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/trossen-loader-evidence/
+            ${{ runner.temp }}/trossen-loader-source/build/Testing/Temporary/*.log
+            ${{ runner.temp }}/trossen-loader-source/build/CMakeCache.txt
+
+  quality:
+    name: Upstream full pre-commit gate
+    if: github.repository == 'timothyanderson096-ocdealcheck/gdn-engineering-benchmarks' && github.ref == 'refs/heads/validation/trossen-loader-regression-2026-11-02'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the frozen validation draft
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the recorded lint Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12.14'
+      - name: Set isolated runner paths
+        run: |
+          echo "TROSSEN_SOURCE=$RUNNER_TEMP/trossen-loader-source" >> "$GITHUB_ENV"
+          echo "TROSSEN_EVIDENCE=$RUNNER_TEMP/trossen-loader-evidence" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/trossen-loader-evidence"
+      - name: Restore the exact same upstream code and patch
+        id: source
+        run: |
+          bash scripts/trossen-loader-validation/source.sh prepare "$TROSSEN_SOURCE" \
+            2>&1 | tee "$TROSSEN_EVIDENCE/source.log"
+      - name: Install the pinned pre-commit runner
+        run: |
+          python -m pip install pre-commit==4.3.0
+          python -m pip freeze > "$TROSSEN_EVIDENCE/lint-environment.txt"
+      - name: Run every hook with the upstream configuration unchanged
+        working-directory: ${{ runner.temp }}/trossen-loader-source
+        run: |
+          pre-commit run --all-files --show-diff-on-failure \
+            2>&1 | tee "$TROSSEN_EVIDENCE/pre-commit.log"
+      - name: Record any hook edits without accepting them
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        run: |
+          git -C "$TROSSEN_SOURCE" diff --binary > "$TROSSEN_EVIDENCE/post-hooks.diff"
+          bash scripts/trossen-loader-validation/source.sh verify "$TROSSEN_SOURCE" \
+            2>&1 | tee "$TROSSEN_EVIDENCE/final-source.log"
+      - name: Retain the actual lint result and any rejected hook edits
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trossen-loader-quality-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/trossen-loader-evidence/
