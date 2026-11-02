@@ -77,8 +77,10 @@ tested validation commit `050ffbcfb46f1c12723dbd2cc946987ec8b3886a`:
   without changing the candidate, weakening assertions or hiding the build error.
 
 The initial artifacts and compact record are retained under
-`evidence/trossen-loader-validation-2026-11-02/` on this branch. Follow-up results
-must be read from their exact Actions run; no new pass is preclaimed here.
+`evidence/trossen-loader-validation-2026-11-02/` on this branch. The
+[completed follow-up record](../../evidence/trossen-loader-validation-2026-11-02/follow-up/README.md)
+documents run `41446073405`: all 517 configured CPU tests passed with zero
+failures or skips; the known unrelated example build remains a failed gate.
 The separate current-main example fix has its own patch and workflow; it is not
 applied to this tests-only source tree.
 

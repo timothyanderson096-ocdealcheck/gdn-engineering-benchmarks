@@ -1,7 +1,10 @@
 # Trossen RealSense-OFF build-fix draft
 
-Status: prepared for own-account validation; hosted before/after, full build, test
-and pre-commit results are pending. No upstream submission or contact is included.
+Status: own-account validation completed. The baseline failed on the expected
+missing header; the candidate demo, mock behavior, full CPU build, all 398 tests
+and upstream pre-commit passed. See the
+[completed evidence and handoff record](../../evidence/trossen-realsense-off-validation-2026-11-02/README.md).
+No upstream submission or contact is included.
 
 This is separate from the loader-regression draft. It deletes only the unused
 RealSense component include from examples/hardware_registry_demo.cpp on frozen

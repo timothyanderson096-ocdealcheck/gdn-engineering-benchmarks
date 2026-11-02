@@ -3,6 +3,9 @@
 Recorded 2 November 2026. This is validation of an independent tests-only draft,
 not an upstream submission, approval or merge.
 
+The [completed follow-up](follow-up/README.md) records the full 517-case CPU
+suite. This page preserves the initial run and its original validation gap.
+
 ## Exact inputs and result
 
 - Validation commit: `050ffbcfb46f1c12723dbd2cc946987ec8b3886a`.
