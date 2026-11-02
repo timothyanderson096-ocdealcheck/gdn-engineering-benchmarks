@@ -36,10 +36,18 @@ The SDK configuration explicitly supplies `/usr/bin/protoc` because its pkg-conf
 path does not populate `Protobuf_PROTOC_EXECUTABLE`. System package versions are
 recorded; the environment is not claimed to be fully hermetic.
 
-It compiles the real SDK and loader-test target, runs all loader test suites,
-then invokes upstream `make build` and `make test` with the same cached CPU-only
-configuration. Tests run serially. The full test gate is bounded to 12 minutes,
-and the native job to 45 minutes. A separate job runs unchanged upstream
+It compiles the real SDK and loader-test target and runs all loader test suites.
+It then obtains all 34 configured `test_*` targets from CMake's File API, builds
+them independently of examples, and checks that CTest's executable inventory
+matches exactly. The complete registered CPU suite runs without name filters;
+unbuilt placeholders, missing executables and an empty suite fail validation.
+The existing nested `build/tests` layout is retained for relative fixture paths.
+
+Upstream `make build` remains a separate gate after the tests; its failure is not
+suppressed. `make test` runs only if that full build succeeds. The direct full
+CTest run can therefore supply suite evidence even when an unrelated example
+blocks the all-target build. Tests run serially. The full test gate is bounded to
+12 minutes, and the native job to 45 minutes. A separate job runs unchanged upstream
 `pre-commit run --all-files` with pre-commit 4.3.0 and the upstream hook versions.
 Hook-generated edits are retained as evidence but never accepted into the patch.
 
@@ -49,16 +57,30 @@ LeRobot playback are outside this run. The ffmpeg CLI is installed so the enable
 video-file tests are not skipped merely because that executable is absent.
 
 The preparation and final checks enforce the exact upstream SHA, patch digest,
-test-file digest, and single-file diff. Raw logs and loader JUnit XML are retained
+test-file digest, and single-file diff. Raw logs, test inventories and JUnit XML are retained
 as GitHub Actions artifacts for seven days. A successful upload is not a successful
 test: inspect the actual job and step conclusions.
 
-## Status at first validation submission
+## First run and follow-up
 
-Prepared and independently source-reviewed. The changed file passed pinned
-cpplint 2.0.2 and `git diff --check` locally. The new C++ tests had not compiled or
-run when this validation branch was prepared. Consult the branch's Actions run
-for actual build, test, and full pre-commit outcomes; no pass is preclaimed.
+[Run 41442119938](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/actions/runs/41442119938)
+tested validation commit `050ffbcfb46f1c12723dbd2cc946987ec8b3886a`:
+
+- The real SDK and loader executable compiled.
+- All 29 loader tests passed, including all ten new recording regressions;
+  zero failures or skips.
+- Full upstream `pre-commit run --all-files` passed.
+- Full `make build` failed because the unchanged `hardware_registry_demo.cpp`
+  unconditionally included the RealSense header while RealSense was disabled.
+- The original workflow consequently skipped `make test`. This was a validation
+  sequencing gap; the independent all-test build and CTest run above address it
+  without changing the candidate, weakening assertions or hiding the build error.
+
+The initial artifacts and compact record are retained under
+`evidence/trossen-loader-validation-2026-11-02/` on this branch. Follow-up results
+must be read from their exact Actions run; no new pass is preclaimed here.
+The separate current-main example fix has its own patch and workflow; it is not
+applied to this tests-only source tree.
 
 Timothy Anderson — Spotted Ridge Engineering / OC Labs
 Independent software verification · GDN (Global Decision Network)

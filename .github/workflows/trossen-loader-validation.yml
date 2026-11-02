@@ -48,7 +48,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake git pkg-config libopencv-dev libprotobuf-dev \
             protobuf-compiler libbz2-dev zlib1g-dev libzstd-dev liblz4-dev \
-            nlohmann-json3-dev ffmpeg ca-certificates curl
+            nlohmann-json3-dev ffmpeg ca-certificates curl jq
       - name: Install the upstream-pinned Apache Arrow and Parquet version
         run: |
           curl --fail --show-error --location --retry 3 \
@@ -85,6 +85,8 @@ jobs:
       - name: Configure the real SDK with optional hardware and services disabled
         id: configure
         run: |
+          mkdir -p "$TROSSEN_SOURCE/build/.cmake/api/v1/query"
+          touch "$TROSSEN_SOURCE/build/.cmake/api/v1/query/codemodel-v2"
           cmake -S "$TROSSEN_SOURCE" -B "$TROSSEN_SOURCE/build" \
             -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/trossen-arm-install" \
@@ -105,9 +107,61 @@ jobs:
             --timeout 120 -j 1 --output-junit "$TROSSEN_EVIDENCE/loader-tests.xml" \
             -R '^(LoadAlignedEpisodeTest|AlignedRecordingTest|NearestSampleIndexTest|FirstBackwardStepTest|StreamWindowTest|RowGridTest)\.' \
             2>&1 | tee "$TROSSEN_EVIDENCE/loader-tests.log"
+      - name: Build every configured CPU test target independently of examples
+        id: all_test_build
+        if: ${{ !cancelled() && steps.configure.outcome == 'success' }}
+        run: |
+          export LC_ALL=C
+          shopt -s nullglob
+          reply="$TROSSEN_SOURCE/build/.cmake/api/v1/reply"
+          indexes=("$reply"/index-*.json)
+          test "${#indexes[@]}" -gt 0
+          index="${indexes[${#indexes[@]}-1]}"
+          model=$(jq -er '.reply["codemodel-v2"].jsonFile' "$index")
+          jq -e '.configurations | length == 1' "$reply/$model"
+          jq -r '.configurations[0].targets[].name | select(startswith("test_"))' \
+            "$reply/$model" | sort > "$TROSSEN_EVIDENCE/cpu-test-targets.txt"
+          mapfile -t cpu_test_targets < "$TROSSEN_EVIDENCE/cpu-test-targets.txt"
+          # This is a guard for the frozen source/configuration, not a suite-size claim.
+          test "${#cpu_test_targets[@]}" -eq 34
+          printf '%s\n' "${cpu_test_targets[@]}"
+          ctest --test-dir "$TROSSEN_SOURCE/build" --show-only=json-v1 \
+            > "$TROSSEN_EVIDENCE/ctest-before-build.json"
+          cmake --build "$TROSSEN_SOURCE/build" \
+            --target "${cpu_test_targets[@]}" --parallel 2 \
+            2>&1 | tee "$TROSSEN_EVIDENCE/all-test-targets-build.log"
+      - name: Verify discovery and run the full configured CPU CTest suite
+        id: all_cpu_tests
+        if: ${{ !cancelled() && steps.all_test_build.outcome == 'success' }}
+        run: |
+          export LC_ALL=C
+          ctest --test-dir "$TROSSEN_SOURCE/build" --show-only=json-v1 \
+            > "$TROSSEN_EVIDENCE/ctest-after-build.json"
+          jq -e '
+            (.tests | length) > 0 and
+            all(.tests[];
+                (.command | type == "array") and
+                (.command | length) > 0 and
+                (.name | endswith("_NOT_BUILT") | not))
+          ' "$TROSSEN_EVIDENCE/ctest-after-build.json"
+          jq -r '.tests[].command[0]' "$TROSSEN_EVIDENCE/ctest-after-build.json" \
+            | sort -u > "$TROSSEN_EVIDENCE/registered-test-executables.txt"
+          while IFS= read -r executable; do
+            test -x "$executable"
+          done < "$TROSSEN_EVIDENCE/registered-test-executables.txt"
+          jq -r '.tests[].command[0] | split("/")[-1]' \
+            "$TROSSEN_EVIDENCE/ctest-after-build.json" \
+            | sort -u > "$TROSSEN_EVIDENCE/registered-test-targets.txt"
+          diff -u "$TROSSEN_EVIDENCE/cpu-test-targets.txt" \
+            "$TROSSEN_EVIDENCE/registered-test-targets.txt"
+          test -f "$TROSSEN_SOURCE/build/tests/../../tests/test_config.json"
+          timeout 12m ctest --test-dir "$TROSSEN_SOURCE/build" \
+            --output-on-failure --no-tests=error --timeout 120 -j 1 \
+            --output-junit "$TROSSEN_EVIDENCE/full-cpu-tests.xml" \
+            2>&1 | tee "$TROSSEN_EVIDENCE/full-cpu-tests.log"
       - name: Run the full project build in the same CPU configuration
         id: full_build
-        if: ${{ !cancelled() && steps.focused_build.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.configure.outcome == 'success' }}
         run: |
           make -C "$TROSSEN_SOURCE" build NPROC=2 \
             2>&1 | tee "$TROSSEN_EVIDENCE/make-build.log"
