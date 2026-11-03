@@ -14,6 +14,8 @@ All seven cases—including ties and the mutual failure—are available here wit
 
 **[See the accepted-engineering portfolio: major merged fixes in PX4, cantools, GPSDrivers and Micopay](evidence/UPSTREAM-CONTRIBUTIONS.md).** Each case links directly to the upstream pull request and names its tests, limitations and verified merge date. BYD work awaiting maintainer decisions is shown separately rather than counted as accepted.
 
+Latest accepted updates, checked 3 November 2026: **Home Assistant's daylight-saving scheduling correction** and **pynmea2 recovery and additional verification**, preserving Erfouni's original repair credit. The [dated portfolio snapshot](evidence/portfolio-snapshot-2026-11-03.json) records 104 external PRs across 49 repositories, including 33 merged; the detailed portfolio separates repairs, documentation, recovery work and pending contributions.
+
 ## Current highlights and ongoing work
 
 ### Flagship external reference — Micopay PR #34

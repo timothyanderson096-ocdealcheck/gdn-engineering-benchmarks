@@ -2,9 +2,33 @@
 
 **Timothy Anderson — Spotted Ridge Engineering / OC Labs · GDN (Global Decision Network)**
 
-Independent, AI-assisted engineering contributions. These are links to pull requests authored by Timothy Anderson and **merged by the respective upstream projects**. Live GitHub merge status was checked on **2 November 2026**. Each entry describes the evidence and limitations actually reported for that contribution. A merge establishes upstream acceptance of the change, not hardware certification, customer engagement, sponsorship, or endorsement of our broader service.
+Independent, AI-assisted engineering contributions. These are links to pull requests authored by Timothy Anderson and **merged by the respective upstream projects**. The original selection was checked on **2 November 2026**. The latest Home Assistant and pynmea2 entries below, and the public submission snapshot, were checked on **3 November 2026 (Australia/Brisbane)**. Each entry describes the evidence and limitations actually reported for that contribution. A merge establishes upstream acceptance of the change, not hardware certification, customer engagement, sponsorship, or endorsement of our broader service.
 
 The selection is deliberately based on substantive accepted outcomes rather than commit count or volume of submitted pull requests.
+
+## Latest accepted work — checked 3 November 2026
+
+### Home Assistant — correct Time of Day scheduling across daylight-saving fall-back
+
+**[Merged PR #190007](https://github.com/home-assistant/core/pull/190007) · 2 November 2026 (Australia/Brisbane)**
+
+The Time of Day binary sensor could remain on after its configured end on a daylight-saving fall-back day. The correction advances the boundary by one local calendar day while preserving existing handling of ambiguous and nonexistent wall times.
+
+**Reported evidence:** Four new regression cases failed against the original logic while two controls passed; all 38 Time of Day component tests passed with the correction. Focused Ruff checks and formatting passed on the submitted head `6ef21b66affdff155f14f74a7f4e7b864dc962a3`. The one-line correction had independently been suggested by **philmale**; Timothy Anderson implemented it and added the regression/control coverage. **Boundary:** The full Home Assistant repository suite and physical-device validation were not run locally. Upstream review approval and merge were checked separately from these reported local results.
+
+### pynmea2 — recover and independently verify an existing contributor's repair
+
+**[Merged recovery PR #187](https://github.com/Knio/pynmea2/pull/187) · 3 November 2026 (Australia/Brisbane; merged 2 November at 22:19 UTC)**
+
+Recovered **Erfouni's unchanged repair and two regression tests** from closed PR #185, preserving the original commit and authorship. Incomplete supported derived date/time values return `None`; undefined attributes and complete malformed date behavior retain their documented boundaries. Timothy Anderson's contribution was recovery, additional software verification, package checks and the evidence handoff.
+
+**Reported evidence:** The original two regressions failed before the repair; the unchanged candidate passed 107 project tests with four existing warnings. Sixty additional external behavior/control checks passed, and the installed source-distribution checks recorded 167 passing tests. The submitted recovery head was the original commit `8610015ae49c9f691653163388e12f4a8d87df0b`. **Boundary:** Additional external checks were verification evidence, not 60 tests added upstream. No original receiver, physical hardware or full OS/interpreter matrix was validated. **Original repair credit remains with Erfouni; this is an accepted recovery and verification contribution.**
+
+## Public submission snapshot — 3 November 2026
+
+The inspected GitHub account has **104 authored external PRs across 49 repositories: 33 merged, 58 open and 13 closed without merge**. Seven of the 104 are drafts. These totals include repairs, features, documentation and recovery work; they describe PR activity rather than a count of unique original fixes or paid projects.
+
+[Inspect all 104 source records and the exact search scope](portfolio-snapshot-2026-11-03.json). Private preparations, unpublished work, internal repository PRs and other contributors' PRs are excluded. This is a dated snapshot; open PRs remain awaiting an outcome.
 
 ## Major merged fixes
 
@@ -69,3 +93,9 @@ For each contribution, the operating method is: read complete project context, s
 - **Privately prepared:** No upstream publication or acceptance yet.
 
 For the independent controlled verification experiment, see the [main evidence README](../README.md) and its published limitations. These upstream contributions and the controlled experimental cases are **different evidence sets**, not interchangeable win-rate statistics.
+
+---
+
+Timothy Anderson — Spotted Ridge Engineering / OC Labs · GDN (Global Decision Network)  
+Independent AI-assisted engineering and software verification  
+timothyanderson096@gmail.com · [Engineering evidence](https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks)
