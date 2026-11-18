@@ -5,6 +5,8 @@ Public software verification evidence from **[Spotted Ridge Engineering by OC La
 - [Get a free bug assessment](https://oc-labs.com.au/?utm_source=github&utm_medium=referral&utm_campaign=engineering-evidence#start) — Bring one reproducible bug. An eligible tested fix costs A$19.99 if you choose to buy it.
 - [Request independent software verification](https://oc-labs.com.au/enquire/?package=single-issue&topic=software&utm_source=github&utm_medium=referral&utm_campaign=engineering-evidence) — From A$249 to check one agreed software behaviour and document the evidence.
 
+[50 public pull requests across 26 external repositories in one Brisbane day](evidence/2026-11-18-brisbane-pr-benchmark.md) · Inspect the fixes, daily-volume comparison, and all 50 pull requests.
+
 [See a merged fix in practice: Windows tab completion in cmd2](evidence/case-study/cmd2-windows-path-completion.md).
 
 GDN is an evidence-driven verification approach for AI-assisted software engineering. It separates creation from independent verification so that a plausible repair is not accepted merely because it looks correct or passes the most obvious checks.
