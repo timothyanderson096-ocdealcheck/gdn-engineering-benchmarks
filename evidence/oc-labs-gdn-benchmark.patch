@@ -1,0 +1,66 @@
+diff --git a/site/index.html b/site/index.html
+index d0b6782..48e440c 100644
+--- a/site/index.html
++++ b/site/index.html
+@@ -42,6 +42,14 @@
+ <p class="form-message" id="form-message" role="status" aria-live="polite" hidden></p>
+ <noscript><p class="micro">You can submit this form without JavaScript. A successful submission opens a confirmation page.</p></noscript>
+ </form><p class="contact-support">Keep passwords, private code and customer data out of your enquiry. Prefer email? <a href="mailto:tim@oc-labs.com.au?subject=Spotted%20Ridge%20software%20enquiry">tim@oc-labs.com.au</a>.</p></div></section><section class="accepted-proof" id="accepted-work" aria-labelledby="accepted-heading"><div class="shell"><p class="eyebrow">Accepted work. Public record.</p><h2 id="accepted-heading">34 contributions merged.<br>20 open-source projects.</h2><p>Our contribution record spans developer tools, vehicle-data software, robotics and home automation. Explore the code, tests and upstream review behind the work.</p><div class="accepted-stats" aria-label="Accepted contribution statistics"><div class="accepted-stat"><strong>34</strong><span>Contributions merged upstream</span></div><div class="accepted-stat"><strong>20</strong><span>Open-source projects</span></div><div class="accepted-stat"><strong>23</strong><span>Merges since 21 October 2026</span></div></div><div class="accepted-cards"><article class="accepted-card"><span class="accepted-tag">Merged · Home Assistant</span><h3>A calendar-day fix for daylight saving.</h3><p>Corrected next-day Time of Day sensor boundaries across daylight-saving fall-back.</p><a href="https://github.com/home-assistant/core/pull/190007">Inspect the accepted contribution ↗</a></article><article class="accepted-card"><span class="accepted-tag">Merged · PX4 Autopilot</span><h3>Recoverable protocol transactions.</h3><p>Improved recovery after rejected parameter writes and mission-transfer messages.</p><a href="https://github.com/PX4/PX4-Autopilot/pull/29522">Inspect the accepted contribution ↗</a></article><article class="accepted-card"><span class="accepted-tag">Merged · Australian Cyber Security Centre · Azul</span><h3>Cleaner uploads. Earlier validation.</h3><p>Closed owned upload files and rejected malformed SHA-256 hashes before dataless uploads.</p><a href="https://github.com/AustralianCyberSecurityCentre/azul-client/pull/72">Inspect the accepted contribution ↗</a></article></div><p class="accepted-note">Verified 11 November 2026 · Contributions authored by Timothy Anderson. Project names identify upstream contributions, not clients or endorsements.</p><div class="actions"><a class="btn" href="/evidence/">Explore all 34 accepted contributions →</a><a href="/software-help-usa/">Remote software help for US builders →</a></div></div></section>
++<section class="band" id="daily-record" aria-labelledby="daily-record-title">
++<div class="shell">
++<p class="eyebrow">18 November 2026 · Brisbane</p>
++<h2 id="daily-record-title">50 pull requests opened across 26 open-source projects.</h2>
++<p>Timothy Anderson reviewed the work using ChatGPT and GDN, our parallel checking system. That day’s submission volume reached the <strong>top 0.1% in a five-weekday historical GitHub sample</strong>.</p>
++<a class="text-link" href="/evidence/#daily-benchmark">Inspect the fixes and see how we counted →</a>
++</div>
++</section>
+ <section id="how"><div class="shell"><div class="section-heading"><div><p class="eyebrow">How your job works</p><h2>Submit. Assess.<br>Pay. Keep going.</h2></div><p>A clear path from one reproducible software problem to a reviewed result. We confirm the scope and checks before you decide.</p></div><div class="workflow"><article class="step"><span class="number">01 / SUBMIT</span><h3>Show us the problem.</h3><p>Tell us what should happen, what happens instead and how to trigger it. Start with a short description and a public project link if available.</p></article><article class="step"><span class="number">02 / ASSESS</span><h3>Get a free assessment.</h3><p>We review the issue, confirm whether it fits and agree the scope. For an eligible job, we prepare a patch and run the agreed checks.</p></article><article class="step"><span class="number">03 / UNLOCK</span><h3>Choose to pay A$19.99.</h3><p>When a fix passes the agreed checks, choose whether to buy it. Payment unlocks the patch, test summary and a short explanation.</p></article></div></div></section>
+ <section id="demo" class="fix-demo-section" aria-labelledby="demo-heading">
+ <div class="shell">
+diff --git a/site/evidence/index.html b/site/evidence/index.html
+index b0a53f1..fe31c24 100644
+--- a/site/evidence/index.html
++++ b/site/evidence/index.html
+@@ -4,17 +4,17 @@
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Our Work | Spotted Ridge Engineering</title>
+-<meta name="description" content="Spotted Ridge Engineering: practical software fixes, our original spotted gum tree and three selected accepted open-source contributions with public records.">
++<meta name="description" content="Inspect accepted fixes and the tests behind a 50-pull-request day across 26 open-source projects. Explore the public GitHub records and benchmark.">
+ <link rel="canonical" href="https://oc-labs.com.au/evidence/">
+ <meta property="og:type" content="website">
+ <meta property="og:locale" content="en_AU">
+ <meta property="og:site_name" content="Spotted Ridge Engineering · OC Labs">
+ <meta property="og:title" content="Our Work | Spotted Ridge Engineering">
+-<meta property="og:description" content="Spotted Ridge Engineering: practical software fixes, our original spotted gum tree and three selected accepted open-source contributions with public records.">
++<meta property="og:description" content="Inspect accepted fixes and the tests behind a 50-pull-request day across 26 open-source projects. Explore the public GitHub records and benchmark.">
+ <meta property="og:url" content="https://oc-labs.com.au/evidence/">
+ <meta property="og:image" content="https://oc-labs.com.au/assets/spotted-gum-jade-white-v1.webp">
+ <meta name="twitter:card" content="summary_large_image">
+-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://oc-labs.com.au/#oc-labs", "name": "OC Labs", "url": "https://oc-labs.com.au/"}, {"@type": "Organization", "@id": "https://oc-labs.com.au/#organization", "name": "Spotted Ridge Engineering", "url": "https://oc-labs.com.au/", "email": "tim@oc-labs.com.au", "description": "Spotted Ridge Engineering is the software engineering brand of OC Labs, based in Logan, Queensland, Australia. Software debugging, independent code verification and tested open-source contributions.", "parentOrganization": {"@id": "https://oc-labs.com.au/#oc-labs"}}, {"@type": "WebSite", "@id": "https://oc-labs.com.au/#website", "url": "https://oc-labs.com.au/", "name": "Spotted Ridge Engineering", "alternateName": "OC Labs", "publisher": {"@id": "https://oc-labs.com.au/#organization"}}, {"@type": "WebPage", "@id": "https://oc-labs.com.au/evidence/#webpage", "url": "https://oc-labs.com.au/evidence/", "name": "Our Work | Spotted Ridge Engineering", "description": "Spotted Ridge Engineering: practical software fixes, our original spotted gum tree and three selected accepted open-source contributions with public records.", "isPartOf": {"@id": "https://oc-labs.com.au/#website"}, "about": {"@id": "https://oc-labs.com.au/#organization"}, "dateModified": "2026-11-13"}]}</script>
++<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://oc-labs.com.au/#oc-labs", "name": "OC Labs", "url": "https://oc-labs.com.au/"}, {"@type": "Organization", "@id": "https://oc-labs.com.au/#organization", "name": "Spotted Ridge Engineering", "url": "https://oc-labs.com.au/", "email": "tim@oc-labs.com.au", "description": "Spotted Ridge Engineering is the software engineering brand of OC Labs, based in Logan, Queensland, Australia. Software debugging, independent code verification and tested open-source contributions.", "parentOrganization": {"@id": "https://oc-labs.com.au/#oc-labs"}}, {"@type": "WebSite", "@id": "https://oc-labs.com.au/#website", "url": "https://oc-labs.com.au/", "name": "Spotted Ridge Engineering", "alternateName": "OC Labs", "publisher": {"@id": "https://oc-labs.com.au/#organization"}}, {"@type": "WebPage", "@id": "https://oc-labs.com.au/evidence/#webpage", "url": "https://oc-labs.com.au/evidence/", "name": "Our Work | Spotted Ridge Engineering", "description": "Inspect accepted fixes and the tests behind a 50-pull-request day across 26 open-source projects. Explore the public GitHub records and benchmark.", "isPartOf": {"@id": "https://oc-labs.com.au/#website"}, "about": {"@id": "https://oc-labs.com.au/#organization"}, "dateModified": "2026-11-18"}]}</script>
+ <link rel="stylesheet" href="/site.css?v=20261109-readiness">
+ <link rel="stylesheet" href="/accepted-work.css?v=20261111">
+ <link rel="stylesheet" href="/assets/support-midnight-v1.css?v=2">
+@@ -43,6 +43,21 @@
+ </section>
+ <div class="shell content-shell">
+ <section id="accepted-record" class="prose-section selected-work" aria-labelledby="selected-work-title"><p class="eyebrow">Selected accepted work</p><h2 id="selected-work-title">Three fixes. Public results.</h2><div class="accepted-cards"><article class="accepted-card"><span class="accepted-tag">Merged · Home Assistant</span><h3>A calendar-day fix for daylight saving.</h3><p>Corrected next-day Time of Day sensor boundaries across daylight-saving fall-back.</p><a href="https://github.com/home-assistant/core/pull/190007">Inspect the accepted contribution ↗</a></article><article class="accepted-card"><span class="accepted-tag">Merged · PX4 Autopilot</span><h3>Recoverable protocol transactions.</h3><p>Improved recovery after rejected parameter writes and mission-transfer messages.</p><a href="https://github.com/PX4/PX4-Autopilot/pull/29522">Inspect the accepted contribution ↗</a></article><article class="accepted-card"><span class="accepted-tag">Merged · python-can</span><h3>Stop a malformed log from looping.</h3><p>Rejected undersized BLF objects instead of repeatedly processing the same malformed record.</p><a href="https://github.com/hardbyte/python-can/pull/2109">Inspect the accepted contribution ↗</a></article></div><p class="accepted-note">Selected from 34 merged contributions across 20 open-source projects, verified 11 November 2026. These are open-source contributions by Timothy Anderson, not client endorsements.</p><p><a class="read-link" href="/evidence/micopay/">Read one short case study →</a></p></section>
++<section id="daily-benchmark" class="prose-section" aria-labelledby="daily-benchmark-title">
++<p class="eyebrow">Daily engineering benchmark · 18 November 2026</p>
++<h2 id="daily-benchmark-title">50 public pull requests across 26 external projects.</h2>
++<p>Timothy Anderson directed the work with ChatGPT, ran parallel checks through GDN and personally reviewed the results. GitHub recorded the 50th submission at 11:16 pm Brisbane time. The total includes changes prepared earlier and opened on the day.</p>
++<p><a href="https://github.com/search?q=is%3Apr+is%3Apublic+author%3Atimothyanderson096-ocdealcheck+created%3A2026-11-17T14%3A00%3A00Z..2026-11-18T13%3A59%3A59Z&amp;type=pullrequests">Inspect the day’s 50 pull requests on GitHub ↗</a></p>
++<h3>Two fixes you can check</h3>
++<ul>
++<li><strong>GPSBabel.</strong> A GPS file conversion could lose turn and landmark symbols. The fix preserved all 188 original course cues in two cycling recordings. All 76 native tests passed. <a href="https://github.com/GPSBabel/gpsbabel/pull/1674">Inspect the GPSBabel fix ↗</a></li>
++<li><strong>Pexpect.</strong> A program writing UTF-16 output could fail before it started. The regression test launches a real child process and checks its output. All 258 project tests passed. <a href="https://github.com/pexpect/pexpect/pull/850">Inspect the Pexpect fix ↗</a></li>
++</ul>
++<h3>How 50 compares</h3>
++<p>In five Brisbane weekdays from 18–22 November 2024, <strong>321 of 338,205 active account-days</strong> reached 50 public pull request openings. That puts a 50-submission day in the <strong>top 0.1% of this sample by daily volume</strong>.</p>
++<p>Each account contributed one observation per day it opened a public pull request. The count excludes account names ending in <code>[bot]</code>. Other automation can appear in the data. GitHub records submissions and merges separately. Assess the changes themselves through the linked code and tests.</p>
++<p><a href="https://github.com/timothyanderson096-ocdealcheck/gdn-engineering-benchmarks/blob/main/evidence/2026-11-18-brisbane-pr-benchmark.md">Read the benchmark, peer comparisons and query ↗</a> · <a href="https://www.gharchive.org/">Explore the source data ↗</a></p>
++</section>
+ <section class="prose-section evidence-next"><h2>Have a software issue?</h2><p>Tell us what should happen, what happens instead and how to reproduce it. We agree the scope and checks first. You choose whether to pay when a tested result is ready.</p><a class="btn primary" href="/#start">Start with a free assessment →</a></section>
+ </div>
+ </main>
