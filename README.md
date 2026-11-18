@@ -1,6 +1,9 @@
 # GDN engineering verification evidence — OC Labs
 
-Public software verification evidence from **[Spotted Ridge Engineering by OC Labs](https://oc-labs.com.au/)**. Explore the [independent software verification service](https://oc-labs.com.au/software-check/) or inspect the reproducible results and limitations below.
+Public software verification evidence from **[Spotted Ridge Engineering by OC Labs](https://oc-labs.com.au/)**.
+
+- [Get a free bug assessment](https://oc-labs.com.au/?utm_source=github&utm_medium=referral&utm_campaign=engineering-evidence#start) — Bring one reproducible bug. An eligible tested fix costs A$19.99 if you choose to buy it.
+- [Request independent software verification](https://oc-labs.com.au/enquire/?package=single-issue&topic=software&utm_source=github&utm_medium=referral&utm_campaign=engineering-evidence) — From A$249 to check one agreed software behaviour and document the evidence.
 
 GDN is an evidence-driven verification approach for AI-assisted software engineering. It separates creation from independent verification so that a plausible repair is not accepted merely because it looks correct or passes the most obvious checks.
 
