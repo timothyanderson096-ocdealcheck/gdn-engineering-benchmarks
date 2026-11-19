@@ -1,0 +1,228 @@
+diff --git a/docs/web/docs/Models/Electric.md b/docs/web/docs/Models/Electric.md
+index 35dd4901a..962aee8bf 100644
+--- a/docs/web/docs/Models/Electric.md
++++ b/docs/web/docs/Models/Electric.md
+@@ -51,8 +51,18 @@ These values have the following meanings (the defaults are from the Kia below):
+ | constantPowerIntake               | float      | 100 (W)           | Avg. (constant) power of consumers *P<sub>const</sub>*  |
+ | propulsionEfficiency              | float      | 0.98              | Drive efficiency *η<sub>prop</sub>*                     |
+ | recuperationEfficiency            | float      | 0.96              | Recuperation efficiency *η<sub>recup</sub>*             |
++| maximumRecuperationPower          | float (≥ 0) | unlimited (W)    | Maximum mechanical braking power the motor can recover  |
++| maximumRecuperationTorque         | float (≥ 0) | unlimited (Nm)   | Maximum regenerative braking torque at the motor shaft   |
++| gearRatio                         | float (> 0) | 10               | Ratio of motor speed to wheel speed for the torque limit |
++| wheelRadius                       | float (> 0) | 0.3588 (m)       | Wheel radius used to convert motor torque to braking force |
+ | stoppingThreshold                 | float      | 0.1 (m/s)         | Maximum velocity to start charging                      |
+ 
++The `Energy` model accepts either recuperation limit independently. It represents the mechanical braking work in each time step as a constant braking force and assumes the speed changes linearly during the step.
++With ideal gearing, `maximumRecuperationTorque` limits the regenerative force at the wheels to the shaft torque times `gearRatio` divided by `wheelRadius`.
++If this force times the vehicle speed exceeds `maximumRecuperationPower`, the motor accepts only the configured power for that portion of the step.
++Friction brakes dissipate the excess braking energy.
++Recuperation efficiency and auxiliary consumption apply after the mechanical limits. A zero value for either limit disables recuperation.
++
+ !!! note
+     Before SUMO 1.20.0 the `rotatingMass` was called `internalMomentOfInertia` but it has been renamed to make clear
+     that it is a mass and not a moment of inertia. The old parameter is considered deprecated.
+diff --git a/src/utils/emissions/HelpersEnergy.cpp b/src/utils/emissions/HelpersEnergy.cpp
+index 4506759a8..9e02b7bbd 100644
+--- a/src/utils/emissions/HelpersEnergy.cpp
++++ b/src/utils/emissions/HelpersEnergy.cpp
+@@ -104,6 +104,7 @@ HelpersEnergy::compute(const SUMOEmissionClass /* c */, const PollutantsInterfac
+         // Assumption: Efficiency of myPropulsionEfficiency when accelerating
+         power /= param->getDoubleOptional(SUMO_ATTR_PROPULSIONEFFICIENCY, myDefaultPropulsionEfficiency);
+     } else {
++        power = -computeRecuperationPower(-power, lastV, v, *param);
+         // Assumption: Efficiency of myRecuperationEfficiency when recuperating
+         power *= param->getDoubleOptional(SUMO_ATTR_RECUPERATIONEFFICIENCY, myDefaultRecuperationEfficiency);
+         if (a != 0) {
+@@ -129,6 +130,40 @@ HelpersEnergy::compute(const SUMOEmissionClass /* c */, const PollutantsInterfac
+ }
+ 
+ 
++double
++HelpersEnergy::computeRecuperationPower(double brakePower, const double lastV, const double v, const EnergyParams& param) {
++    const double maxTorque = param.getDoubleOptional(SUMO_ATTR_MAXIMUMRECUPERATIONTORQUE, INVALID_DOUBLE);
++    const double maxPower = param.getDoubleOptional(SUMO_ATTR_MAXIMUMRECUPERATIONPOWER, INVALID_DOUBLE);
++    if (maxTorque == INVALID_DOUBLE && maxPower == INVALID_DOUBLE) {
++        return brakePower;
++    }
++    const double lowSpeed = MIN2(fabs(lastV), fabs(v));
++    const double highSpeed = MAX2(fabs(lastV), fabs(v));
++    const double meanSpeed = 0.5 * (lowSpeed + highSpeed);
++    if (maxTorque != INVALID_DOUBLE) {
++        const double gearRatio = param.getDoubleOptional(SUMO_ATTR_GEARRATIO, 10.);
++        const double wheelRadius = param.getDoubleOptional(SUMO_ATTR_WHEELRADIUS, 0.3588);
++        const double maxForce = wheelRadius > 0 ? MAX2(0., maxTorque) * MAX2(0., gearRatio) / wheelRadius : 0.;
++        brakePower = MIN2(brakePower, maxForce * meanSpeed);
++    }
++    if (maxPower == INVALID_DOUBLE) {
++        return brakePower;
++    }
++    const double limit = MAX2(0., maxPower);
++    if (lowSpeed < highSpeed && meanSpeed > 0.) {
++        // Spread the braking work over the step at constant force, so power varies linearly with speed.
++        const double lowPower = brakePower * (lowSpeed / meanSpeed);
++        const double highPower = brakePower * (highSpeed / meanSpeed);
++        if (lowPower < limit && limit < highPower) {
++            // Below the crossing speed the motor recovers less than the limit (a triangle in power vs time).
++            const double belowLimitFraction = (limit - lowPower) / (highPower - lowPower);
++            return limit - 0.5 * (limit - lowPower) * belowLimitFraction;
++        }
++    }
++    return MIN2(brakePower, limit);
++}
++
++
+ double
+ HelpersEnergy::acceleration(const SUMOEmissionClass /* c */, const PollutantsInterface::EmissionType e, const double v, const double P, const double slope, const EnergyParams* param) const {
+     if (e != PollutantsInterface::ELEC) {
+diff --git a/src/utils/emissions/HelpersEnergy.h b/src/utils/emissions/HelpersEnergy.h
+index e2ce9e59d..764c3e251 100644
+--- a/src/utils/emissions/HelpersEnergy.h
++++ b/src/utils/emissions/HelpersEnergy.h
+@@ -40,6 +40,9 @@
+  */
+ class HelpersEnergy : public PollutantsInterface::Helper {
+ private:
++    /// @brief Mean mechanical braking power [W] recoverable by the motor over the step.
++    static double computeRecuperationPower(double brakePower, double lastV, double v, const EnergyParams& param);
++
+     static const int ENERGY_BASE = 4 << 16;
+ 
+ public:
+diff --git a/tests/complex/emissions/recuperation_limits/data.csv b/tests/complex/emissions/recuperation_limits/data.csv
+new file mode 100644
+index 000000000..a78630675
+--- /dev/null
++++ b/tests/complex/emissions/recuperation_limits/data.csv
+@@ -0,0 +1,9 @@
++0;20;0;0
++1;20;0;-5
++2;19.8;-0.2;0
++3;15.8;-4;0
++4;7.8;-8;0
++5;4;-3.8;0
++6;0;-4;0
++7;10;10;0
++8;0;-10;0
+diff --git a/tests/complex/emissions/recuperation_limits/errors.complex b/tests/complex/emissions/recuperation_limits/errors.complex
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/tests/complex/emissions/recuperation_limits/input_additional.add.xml b/tests/complex/emissions/recuperation_limits/input_additional.add.xml
+new file mode 100644
+index 000000000..869733c79
+--- /dev/null
++++ b/tests/complex/emissions/recuperation_limits/input_additional.add.xml
+@@ -0,0 +1,31 @@
++<additional>
++    <!-- Suppress road load to isolate wheel work; the auxiliary load stays on during braking. -->
++    <vType id="unlimited" emissionClass="Energy/unknown" mass="1000">
++        <param key="rotatingMass" value="0"/>
++        <param key="airDragCoefficient" value="0"/>
++        <param key="rollDragCoefficient" value="0"/>
++        <param key="propulsionEfficiency" value="1"/>
++        <param key="recuperationEfficiency" value="0.5"/>
++        <param key="constantPowerIntake" value="250"/>
++        <param key="wheelRadius" value="0.4"/>
++        <param key="gearRatio" value="4"/>
++    </vType>
++    <vType id="power" refId="unlimited">
++        <param key="maximumRecuperationPower" value="5000"/>
++    </vType>
++    <vType id="torque" refId="unlimited">
++        <param key="maximumRecuperationTorque" value="100"/>
++    </vType>
++    <vType id="both" refId="power">
++        <param key="maximumRecuperationTorque" value="100"/>
++    </vType>
++    <vType id="noPower" refId="unlimited">
++        <param key="maximumRecuperationPower" value="0"/>
++    </vType>
++    <vType id="noTorque" refId="unlimited">
++        <param key="maximumRecuperationTorque" value="0"/>
++    </vType>
++    <vType id="decelEfficiency" refId="power">
++        <param key="recuperationEfficiencyByDecel" value="2.772588722239781"/>
++    </vType>
++</additional>
+diff --git a/tests/complex/emissions/recuperation_limits/options.complex b/tests/complex/emissions/recuperation_limits/options.complex
+new file mode 100644
+index 000000000..8e01e7033
+--- /dev/null
++++ b/tests/complex/emissions/recuperation_limits/options.complex
+@@ -0,0 +1 @@
++tests/complex/emissions/recuperation_limits/runner.py
+diff --git a/tests/complex/emissions/recuperation_limits/output.complex b/tests/complex/emissions/recuperation_limits/output.complex
+new file mode 100644
+index 000000000..2468cebf2
+--- /dev/null
++++ b/tests/complex/emissions/recuperation_limits/output.complex
+@@ -0,0 +1,8 @@
++vehicle: net electricity (Wh/s), in timeline order
++unlimited: 0.0694444 -2.30474 -0.483333 -9.81944 -13.0417 -3.04444 -1.04167 13.9583 -6.875
++power: 0.0694444 -0.625 -0.483333 -0.625 -0.625 -0.625 -0.516493 13.9583 -0.607639
++torque: 0.0694444 -2.30474 -0.483333 -2.40278 -1.56944 -0.75 -0.208333 13.9583 -0.625
++both: 0.0694444 -0.625 -0.483333 -0.625 -0.625 -0.606725 -0.208333 13.9583 -0.451389
++noPower: 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 13.9583 0.0694444
++noTorque: 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 0.0694444 13.9583 0.0694444
++decelEfficiency: 0.0694444 -0.625 0.0694439 -0.277778 -0.421602 -0.265339 -0.223524 13.9583 -0.443689
+diff --git a/tests/complex/emissions/recuperation_limits/runner.py b/tests/complex/emissions/recuperation_limits/runner.py
+new file mode 100755
+index 000000000..7141e36ed
+--- /dev/null
++++ b/tests/complex/emissions/recuperation_limits/runner.py
+@@ -0,0 +1,45 @@
++#!/usr/bin/env python
++# -*- coding: utf-8 -*-
++# Eclipse SUMO, Simulation of Urban MObility; see https://eclipse.dev/sumo
++# Copyright (C) 2026-2026 German Aerospace Center (DLR) and others.
++# This program and the accompanying materials are made available under the
++# terms of the Eclipse Public License 2.0 which is available at
++# https://www.eclipse.org/legal/epl-2.0/
++# This Source Code may also be made available under the following Secondary
++# Licenses when the conditions for such availability set forth in the Eclipse
++# Public License 2.0 are satisfied: GNU General Public License, version 2
++# or later which is available at
++# https://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html
++# SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-or-later
++
++# @file    runner.py
++# @author  OpenAI Codex (AI-assisted contribution)
++# @date    2026-11-19
++
++"""Compare battery-terminal energy rates on one identical 1 s braking trace."""
++
++import os
++import subprocess
++import sys
++import xml.etree.ElementTree as ET
++
++sys.path.append(os.path.join(os.environ["SUMO_HOME"], "tools"))
++from sumolib import checkBinary  # noqa
++
++
++# A constant-speed descent can also saturate the motor. On level road,
++# 20 -> 19.8 m/s stays below both limits. Hard braking at speed hits the power
++# ceiling. The 4 -> 0 m/s stop hits the torque ceiling at 2 m/s mean speed.
++# 100 Nm * 4 / 0.4 m gives 1000 N. With both limits the 4 -> 0 m/s step
++# therefore returns (2000 W * 0.5 - 250 W) / 3600 = 0.208333 Wh.
++# On 10 -> 0 m/s, the first half second delivers 5 kW; the next half
++# averages 2.5 kW. This recovers 3750 J mechanically, or 0.451389 Wh net.
++print("vehicle: net electricity (Wh/s), in timeline order")
++for vtype in ET.parse("input_additional.add.xml").getroot().findall("vType"):
++    name = vtype.attrib["id"]
++    subprocess.check_call([checkBinary("emissionsDrivingCycle"), "--quiet",
++                           "--timeline-file", "data.csv", "--additional-files", "input_additional.add.xml",
++                           "--have-slope", "--vtype", name,
++                           "--output.attributes", "electricity_abs", "-o", "rates.csv"])
++    with open("rates.csv") as rates:
++        print("%s: %s" % (name, " ".join(line.split(";")[1].strip() for line in rates)))
+diff --git a/tests/complex/emissions/testsuite.complex b/tests/complex/emissions/testsuite.complex
+index 426826290..3da7976b8 100644
+--- a/tests/complex/emissions/testsuite.complex
++++ b/tests/complex/emissions/testsuite.complex
+@@ -45,3 +45,6 @@ coasting
+ 
+ # output coasting decel with slope
+ coasting_slope
++
++# Mechanical power and torque limits on regenerative braking
++recuperation_limits
