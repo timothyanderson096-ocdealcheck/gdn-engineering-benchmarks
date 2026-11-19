@@ -1,0 +1,65 @@
+diff --git a/fastsim-core/src/simdrive/mod.rs b/fastsim-core/src/simdrive/mod.rs
+index f6de4da..b08dbd1 100644
+--- a/fastsim-core/src/simdrive/mod.rs
++++ b/fastsim-core/src/simdrive/mod.rs
+@@ -1355,6 +1355,46 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    #[cfg(feature = "resources")]
++    fn test_bev_without_battery_hvac_setpoint() -> anyhow::Result<()> {
++        use std::cmp::Ordering::{Equal, Greater, Less};
++
++        let veh = Vehicle::from_resource("2020 Chevrolet Bolt EV thrml.yaml", false)?;
++        let cyc = Cycle::from_resource("udds.csv", false)?;
++        // Set the thermostat above or below the starting cabin temperature, or disable it.
++        for (setpoint_k, cabin_heat) in
++            [(Some(302.15), Greater), (Some(285.15), Less), (None, Equal)]
++        {
++            let mut sd = SimDrive::new(veh.clone(), cyc.clone(), None);
++            let HVACOption::LumpedCabinAndRES(hvac) = &mut sd.veh.hvac else {
++                panic!("expected combined cabin and battery HVAC");
++            };
++            hvac.te_set_res = None;
++            hvac.te_set_cab = setpoint_k.map(|k| k * uc::KELVIN);
++            sd.run_once()?;
++
++            let HVACOption::LumpedCabinAndRES(hvac) = &sd.veh.hvac else {
++                unreachable!();
++            };
++            let state = &hvac.state;
++            assert_eq!(
++                *state.pwr_thrml_to_res_req.get_fresh(String::new)?,
++                si::Power::ZERO
++            );
++            assert_eq!(
++                *state.energy_aux_for_res_hvac.get_fresh(String::new)?,
++                si::Energy::ZERO
++            );
++            let cabin_energy = state.energy_thrml_hvac_to_cabin.get_fresh(String::new)?;
++            assert_eq!(
++                cabin_energy.partial_cmp(&si::Energy::ZERO),
++                Some(cabin_heat)
++            );
++        }
++        Ok(())
++    }
++
+     #[test]
+     #[cfg(feature = "resources")]
+     /// Simulate prep cycle, soak cycle, and test cycle with thermal effects
+diff --git a/fastsim-core/src/vehicle/hvac/hvac_sys_for_lumped_cabin_and_res.rs b/fastsim-core/src/vehicle/hvac/hvac_sys_for_lumped_cabin_and_res.rs
+index f1285c9..21f128c 100644
+--- a/fastsim-core/src/vehicle/hvac/hvac_sys_for_lumped_cabin_and_res.rs
++++ b/fastsim-core/src/vehicle/hvac/hvac_sys_for_lumped_cabin_and_res.rs
+@@ -1135,6 +1135,9 @@ impl HVACSystemForLumpedCabinAndRES {
+                 self.state
+                     .pwr_aux_for_res_hvac
+                     .update(si::Power::ZERO, || format_dbg!())?;
++                self.state
++                    .pwr_thrml_to_res_req
++                    .update(si::Power::ZERO, || format_dbg!())?;
+                 self.state
+                     .pwr_thrml_hvac_to_res
+                     .update(si::Power::ZERO, || format_dbg!())?;
